@@ -3,3 +3,4 @@
 *.swp
 /websup-git-*.tgz
 credentials.json
+VERSION.txt

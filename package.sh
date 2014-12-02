@@ -1,6 +1,8 @@
 #!/bin/bash
 
-NAME=websup-git-`git describe --always`.tgz
+VERSION=`git describe --always`
+NAME=websup-git-$VERSION.tgz
+echo "Git revision: $VERSION" > VERSION.txt
 touch $NAME
 tar zcvf $NAME -C .. websup/ \
   --exclude env \

@@ -19,4 +19,7 @@ Setup completed. To run the test app, use
    . env/bin/activate
    ./app.py
 
+On the first run it will ask you to provide your
+Whatsapp credentials.
+
 MSG

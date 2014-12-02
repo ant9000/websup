@@ -1,0 +1,5 @@
+bottle==0.12.7
+bottle-beaker==0.1.0
+bottle-cork==0.10
+bottle-websocket==0.2.8
+git+https://github.com/tgalal/yowsup.git@master

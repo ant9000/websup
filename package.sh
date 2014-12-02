@@ -7,4 +7,6 @@ tar zcvf $NAME -C .. websup/ \
   --exclude .git \
   --exclude .gitignore \
   --exclude package.sh \
+  --exclude credentials.json \
+  --exclude "*.pyc" \
   --exclude "websup-git-*.tgz"

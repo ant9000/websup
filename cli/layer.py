@@ -2,13 +2,11 @@ from yowsup.layers.interface import YowInterfaceLayer, ProtocolEntityCallback
 from yowsup.layers.auth import YowAuthenticationProtocolLayer
 from yowsup.layers import YowLayerEvent
 from yowsup.layers.network import YowNetworkLayer
-from yowsup.layers.protocol_contacts.protocolentities import GetSyncIqProtocolEntity
+import sys
 from yowsup.common import YowConstants
 import datetime
 import os
-
-
-##protocolentities
+import logging
 from yowsup.layers.protocol_receipts.protocolentities    import *
 from yowsup.layers.protocol_groups.protocolentities      import *
 from yowsup.layers.protocol_presence.protocolentities    import *
@@ -18,25 +16,49 @@ from yowsup.layers.protocol_ib.protocolentities          import *
 from yowsup.layers.protocol_iq.protocolentities          import *
 from yowsup.layers.protocol_contacts.protocolentities    import *
 from yowsup.layers.protocol_profiles.protocolentities    import *
+from yowsup.layers.protocol_chatstate.protocolentities   import *
+from yowsup.layers.protocol_privacy.protocolentities     import *
+from yowsup.layers.protocol_media.protocolentities       import *
+from yowsup.layers.protocol_media.mediauploader import MediaUploader
+from yowsup.layers.axolotl.protocolentities.iq_key_get import GetKeysIqProtocolEntity
+from yowsup.layers.axolotl import YowAxolotlLayer
 
-###
+logger = logging.getLogger(__name__)
 
 class YowsupCliLayer(YowInterfaceLayer):
-    EVENT_START    = "org.openwhatsapp.yowsup.event.cli.start"
-    MESSAGE_FORMAT = "[{FROM}({TIME})]:[{MESSAGE_ID}]\t {MESSAGE}"
+    PROP_RECEIPT_AUTO       = "org.openwhatsapp.yowsup.prop.cli.autoreceipt"
+    PROP_RECEIPT_KEEPALIVE  = "org.openwhatsapp.yowsup.prop.cli.keepalive"
+    PROP_CONTACT_JID        = "org.openwhatsapp.yowsup.prop.cli.contact.jid"
+    EVENT_LOGIN             = "org.openwhatsapp.yowsup.event.cli.login"
+    EVENT_START             = "org.openwhatsapp.yowsup.event.cli.start"
+    EVENT_SENDANDEXIT       = "org.openwhatsapp.yowsup.event.cli.sendandexit"
+
+    MESSAGE_FORMAT          = "[{FROM}({TIME})]:[{MESSAGE_ID}]\t {MESSAGE}"
+
+    DISCONNECT_ACTION_PROMPT = 0
+    DISCONNECT_ACTION_EXIT   = 1
+
+    ACCOUNT_DEL_WARNINGS = 4
 
     def __init__(self):
+        super(YowsupCliLayer, self).__init__()
         YowInterfaceLayer.__init__(self)
+        self.accountDelWarnings = 0
         self.connected = False
         self.username = None
         self.sendReceipts = True
         self.iqs = {}
+        self.disconnectAction = self.__class__.DISCONNECT_ACTION_PROMPT
+
+        #add aliases to make it user to use commands. for example you can then do:
+        # /message send foobar "HI"
+        # and then it will get automaticlaly mapped to foobar's jid
         self.jidAliases = {
             # "NAME": "PHONE@s.whatsapp.net"
         }
         self.queue = None
 
-    def output(self,message,tag=None):
+    def output(self,message,tag=None,prompt=False):
       out = message
       if tag:
         out = "%s: %s" % (tag,message)
@@ -48,6 +70,7 @@ class YowsupCliLayer(YowInterfaceLayer):
         for alias, ajid in self.jidAliases.items():
             if calias.lower() == alias.lower():
                 return self.normalizeJid(ajid)
+
         return self.normalizeJid(calias)
 
     def jidToAlias(self, jid):
@@ -59,6 +82,9 @@ class YowsupCliLayer(YowInterfaceLayer):
     def normalizeJid(self, number):
         if '@' in number:
             return number
+        elif "-" in number:
+            return "%s@g.us" % number
+
         return "%s@s.whatsapp.net" % number
 
     def onEvent(self, layerEvent):
@@ -66,6 +92,13 @@ class YowsupCliLayer(YowInterfaceLayer):
             self.queue = layerEvent.getArg('queue')
             self.output("Started.")
             self.L()
+            return True
+        elif layerEvent.getName() == self.__class__.EVENT_SENDANDEXIT:
+            credentials = layerEvent.getArg("credentials")
+            target = layerEvent.getArg("target")
+            message = layerEvent.getArg("message")
+            self.sendMessageAndDisconnect(credentials, target, message)
+
             return True
         elif layerEvent.getName() == YowNetworkLayer.EVENT_STATE_DISCONNECTED:
             self.output("Disconnected: %s" % layerEvent.getArg("reason"))
@@ -75,8 +108,11 @@ class YowsupCliLayer(YowInterfaceLayer):
         if self.connected:
             return True
         else:
-            self.output("Not connected", tag = "Error")
+            self.output("Not connected", tag = "Error", prompt = False)
             return False
+
+    def addToIqs(self, iqEntity):
+        self.iqs[iqEntity.getId()] = iqEntity
 
     ########## PRESENCE ###############
     def presence_name(self, name):
@@ -119,6 +155,53 @@ class YowsupCliLayer(YowInterfaceLayer):
 
     ######################################
 
+    def groups_list(self):
+        if self.assertConnected():
+            entity = ListGroupsIqProtocolEntity()
+            self.toLower(entity)
+
+    def group_leave(self, jid):
+        #entity = LeaveGroupIqProtocolEntity([jid])
+        print("LEAVE GROUP %s" % jid)
+
+    def groups_create(self, subject):
+        if self.assertConnected():
+            entity = CreateGroupsIqProtocolEntity(subject)
+            self.addToIqs(entity)
+            self.toLower(entity)
+
+    def group_invite(self, group_jid, jid):
+        pass
+
+    def group_participants(self, group_jid):
+        if self.assertConnected():
+            entity = ParticipantsGroupsIqProtocolEntity(self.aliasToJid(group_jid))
+            self.toLower(entity)
+
+    def group_setSubject(self, jid, subject):
+        if self.assertConnected():
+            entity = SubjectGroupsIqProtocolEntity(self.aliasToJid(jid), subject)
+            self.toLower(entity)
+
+    def keys_get(self, jid):
+        if self.assertConnected():
+            entity = GetKeysIqProtocolEntity(self.aliasToJid(jid))
+            self.toLower(entity)
+
+    def keys_set(self):
+        if self.assertConnected():
+            self.broadcastEvent(YowLayerEvent(YowAxolotlLayer.EVENT_PREKEYS_SET))
+
+    def seq(self):
+        priv = PrivacyListIqProtocolEntity()
+        self.toLower(priv)
+        push = PushIqProtocolEntity()
+        self.toLower(push)
+        props = PropsIqProtocolEntity()
+        self.toLower(props)
+        crypto = CryptoIqProtocolEntity()
+        self.toLower(crypto)
+
     def message_send(self, number, content):
         if self.assertConnected():
             outgoingMessage = TextMessageProtocolEntity(content, to = self.aliasToJid(number))
@@ -130,6 +213,36 @@ class YowsupCliLayer(YowInterfaceLayer):
             outgoingMessage = BroadcastTextMessage(jids, content)
             self.toLower(outgoingMessage)
 
+    def message_read(self, message_id):
+        pass
+
+    def message_delivered(self, message_id):
+        pass
+
+    def image_send(self, number, path):
+        if self.assertConnected():
+            jid = self.aliasToJid(number)
+            entity = RequestUploadIqProtocolEntity(RequestUploadIqProtocolEntity.MEDIA_TYPE_IMAGE, filePath=path)
+            successFn = lambda successEntity, originalEntity: self.onRequestUploadResult(jid, path, successEntity, originalEntity)
+            errorFn = lambda errorEntity, originalEntity: self.onRequestUploadError(jid, path, errorEntity, originalEntity)
+
+            self._sendIq(entity, successFn, errorFn)
+
+    def state_typing(self, jid):
+        if self.assertConnected():
+            entity = OutgoingChatstateProtocolEntity(ChatstateProtocolEntity.STATE_TYPING, self.aliasToJid(jid))
+            self.toLower(entity)
+
+    def state_paused(self, jid):
+        if self.assertConnected():
+            entity = OutgoingChatstateProtocolEntity(ChatstateProtocolEntity.STATE_PAUSED, self.aliasToJid(jid))
+            self.toLower(entity)
+
+    def contacts_sync(self, contacts):
+        if self.assertConnected():
+            entity = GetSyncIqProtocolEntity(contacts.split(','))
+            self.toLower(entity)
+
     def disconnect(self):
         if self.assertConnected():
             self.broadcastEvent(YowLayerEvent(YowNetworkLayer.EVENT_STATE_DISCONNECT))
@@ -138,14 +251,22 @@ class YowsupCliLayer(YowInterfaceLayer):
         return self.login(*self.getProp(YowAuthenticationProtocolLayer.PROP_CREDENTIALS))
 
     def login(self, username, b64password):
+
         if self.connected:
             return self.output("Already connected, disconnect first")
+
         self.getStack().setProp(YowAuthenticationProtocolLayer.PROP_CREDENTIALS, (username, b64password))
         connectEvent = YowLayerEvent(YowNetworkLayer.EVENT_STATE_CONNECT)
         self.broadcastEvent(connectEvent)
-        return True
+        return True #prompt will wait until notified
+
+
 
     ######## receive #########
+
+    @ProtocolEntityCallback("chatstate")
+    def onChatstate(self, entity):
+        print(entity)
 
     @ProtocolEntityCallback("iq")
     def onIq(self, entity):
@@ -158,22 +279,28 @@ class YowsupCliLayer(YowInterfaceLayer):
 
     @ProtocolEntityCallback("ack")
     def onAck(self, entity):
+        #formattedDate = datetime.datetime.fromtimestamp(self.sentCache[entity.getId()][0]).strftime('%d-%m-%Y %H:%M')
+        #print("%s [%s]:%s"%(self.username, formattedDate, self.sentCache[entity.getId()][1]))
         if entity.getClass() == "message":
             self.output(entity.getId(), tag = "Sent")
 
     @ProtocolEntityCallback("success")
     def onSuccess(self, entity):
         self.connected = True
-        self.output("Logged in!", "Auth")
+        self.output("Logged in!", "Auth", prompt = False)
 
     @ProtocolEntityCallback("failure")
     def onFailure(self, entity):
         self.connected = False
-        self.output("Login Failed, reason: %s" % entity.getReason())
+        self.output("Login Failed, reason: %s" % entity.getReason(), prompt = False)
 
     @ProtocolEntityCallback("notification")
     def onNotification(self, notification):
-        self.output("From :%s, Type: %s" % (self.jidToAlias(notification.getFrom()), notification.getType()), tag = "Notification")
+        notificationData = notification.__str__()
+        if notificationData:
+            self.output(notificationData, tag = "Notification")
+        else:
+            self.output("From :%s, Type: %s" % (self.jidToAlias(notification.getFrom()), notification.getType()), tag = "Notification")
         if self.sendReceipts:
             receipt = OutgoingReceiptProtocolEntity(notification.getId(), notification.getFrom())
             self.toLower(receipt)
@@ -188,19 +315,23 @@ class YowsupCliLayer(YowInterfaceLayer):
             messageOut = self.getMediaMessageBody(message)
         else:
             messageOut = "Unknown message type %s " % message.getType()
-            print(messageOut.toProtocolTreeNode())
+            print(message.toProtocolTreeNode())
+
+
         formattedDate = datetime.datetime.fromtimestamp(message.getTimestamp()).strftime('%d-%m-%Y %H:%M')
         output = self.__class__.MESSAGE_FORMAT.format(
             FROM = message.getFrom(),
             TIME = formattedDate,
-            MESSAGE = messageOut,
+            MESSAGE = messageOut.encode('latin-1').decode() if sys.version_info >= (3, 0) else messageOut,
             MESSAGE_ID = message.getId()
             )
-        self.output(output, tag = None)
+
+        self.output(output, tag = None, prompt = not self.sendReceipts)
         if self.sendReceipts:
             receipt = OutgoingReceiptProtocolEntity(message.getId(), message.getFrom())
             self.toLower(receipt)
             self.output("Sent delivered receipt", tag = "Message %s" % message.getId())
+
 
     def getTextMessageBody(self, message):
         return message.getBody()
@@ -211,9 +342,42 @@ class YowsupCliLayer(YowInterfaceLayer):
         else:
             return "[Media Type: %s]" % message.getMediaType()
        
+
     def getDownloadableMediaMessageBody(self, message):
          return "[Media Type:{media_type}, Size:{media_size}, URL:{media_url}]".format(
             media_type = message.getMediaType(),
             media_size = message.getMediaSize(),
             media_url = message.getMediaUrl()
             )
+
+
+    def doSendImage(self, filePath, url, to, ip = None):
+        entity = ImageDownloadableMediaMessageProtocolEntity.fromFilePath(filePath, url, ip, to)
+        self.toLower(entity)
+
+    ########### callbacks ############
+
+    def onRequestUploadResult(self, jid, filePath, resultRequestUploadIqProtocolEntity, requestUploadIqProtocolEntity):
+        if resultRequestUploadIqProtocolEntity.isDuplicate():
+            self.doSendImage(filePath, resultRequestUploadIqProtocolEntity.getUrl(), jid,
+                             resultRequestUploadIqProtocolEntity.getIp())
+        else:
+            # successFn = lambda filePath, jid, url: self.onUploadSuccess(filePath, jid, url, resultRequestUploadIqProtocolEntity.getIp())
+            mediaUploader = MediaUploader(jid, self.getOwnJid(), filePath,
+                                      resultRequestUploadIqProtocolEntity.getUrl(),
+                                      resultRequestUploadIqProtocolEntity.getResumeOffset(),
+                                      self.onUploadSuccess, self.onUploadError, self.onUploadProgress, async=False)
+            mediaUploader.start()
+
+    def onRequestUploadError(self, jid, path, errorRequestUploadIqProtocolEntity, requestUploadIqProtocolEntity):
+        logger.error("Request upload for file %s for %s failed" % (path, jid))
+
+    def onUploadSuccess(self, filePath, jid, url):
+        self.doSendImage(filePath, url, jid)
+
+    def onUploadError(self, filePath, jid, url):
+        logger.error("Upload file %s to %s for %s failed!" % (filePath, url, jid))
+
+    def onUploadProgress(self, filePath, jid, url, progress):
+        sys.stdout.write("%s => %s, %d%% \r" % (os.path.basename(filePath), jid, progress))
+        sys.stdout.flush()

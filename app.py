@@ -8,6 +8,7 @@ from bottle.ext.websocket import GeventWebSocketServer
 from bottle.ext.websocket import websocket
 from gevent.queue import Queue
 from cli import stack
+import logging, logging.config
 
 try:
   cfg      = json.load(open('credentials.json','r'))
@@ -35,6 +36,7 @@ for getting further help.
   """
   sys.exit(1)
 
+logging.config.fileConfig('logging.conf')
 queue = Queue()
 stack = stack.YowsupCliStack((phone,password))
 
@@ -54,5 +56,8 @@ def echo(ws):
 def yowsup():
   stack.start(queue)
 
-gevent.spawn(yowsup)
-bottle.run(host='127.0.0.1', port=8080, server=GeventWebSocketServer)
+try:
+  gevent.spawn(yowsup)
+  bottle.run(host='127.0.0.1', port=8080, server=GeventWebSocketServer)
+except KeyboardInterrupt:
+  pass

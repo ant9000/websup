@@ -10,23 +10,27 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
     <script>
         $(document).ready(function() {
+            function log(message){
+                $('#messages').append("<li>"+message+"</li>");
+                $('#messages li:last').get(0).scrollIntoView();
+            }
             if (!window.WebSocket) {
                 if (window.MozWebSocket) {
                     window.WebSocket = window.MozWebSocket;
                 } else {
-                    $('#messages').append("<li>Your browser doesn't support WebSockets.</li>");
+                    log("Your browser doesn't support WebSockets.");
                 }
             }
-            ws = new WebSocket('ws://127.0.0.1:8080/websocket');
+            var ws = new WebSocket('ws://127.0.0.1:8080/websocket');
             ws.onopen = function(evt) {
-                $('#messages').prepend('<li>WebSocket connection opened.</li>');
+                log('WebSocket connection opened.');
                 ws.send('');
             }
             ws.onmessage = function(evt) {
-                $('#messages').prepend('<li>' + evt.data + '</li>');
+                log(evt.data);
             }
             ws.onclose = function(evt) {
-                $('#messages').prepend('<li>WebSocket connection closed.</li>');
+                log('WebSocket connection closed.');
             }
         });
     </script>

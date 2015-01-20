@@ -51,7 +51,10 @@ def echo(ws):
     if msg is None:
       break
     for item in queue:
-      ws.send(item)
+      out = item['text']
+      if item['sender'] is not None:
+        out = '%s: %s' % (item['sender'],item['text'])
+      ws.send(out)
 
 def yowsup():
   stack.start(queue)

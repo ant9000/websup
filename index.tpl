@@ -1,7 +1,7 @@
 <!doctype html>
 <head>
     <meta charset="utf-8" />
-    <title>WebSocket Push Test</title>
+    <title>WebSup</title>
 
     <style>
         li { list-style: none; }
@@ -32,7 +32,7 @@
     </script>
 </head>
 <body>
-    <h2>Bottle Websockets!</h2>
+    <h2>Websup!</h2>
     <div id="messages" style="height:400px;overflow:auto;border:1px solid #ccc;margin:2px;padding:2px;"></div>
 </body>
 </html>

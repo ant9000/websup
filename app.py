@@ -38,7 +38,7 @@ for getting further help.
 
 logging.config.fileConfig('logging.conf')
 queue = Queue()
-stack = stack.YowsupCliStack((phone,password))
+stack = stack.WebsupStack((phone,password))
 
 @bottle.get('/')
 def index():
@@ -60,4 +60,4 @@ try:
   gevent.spawn(yowsup)
   bottle.run(host='127.0.0.1', port=8080, server=GeventWebSocketServer)
 except KeyboardInterrupt:
-  pass
+  print "Exit."

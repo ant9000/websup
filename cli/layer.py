@@ -1,64 +1,22 @@
-from yowsup.layers.interface import YowInterfaceLayer, ProtocolEntityCallback
-from yowsup.layers.auth import YowAuthenticationProtocolLayer
-from yowsup.layers import YowLayerEvent
-from yowsup.layers.network import YowNetworkLayer
-import sys
-from yowsup.common import YowConstants
-import datetime
-import os
-import logging
-from yowsup.layers.protocol_receipts.protocolentities    import *
-from yowsup.layers.protocol_groups.protocolentities      import *
-from yowsup.layers.protocol_presence.protocolentities    import *
-from yowsup.layers.protocol_messages.protocolentities    import *
-from yowsup.layers.protocol_acks.protocolentities        import *
-from yowsup.layers.protocol_ib.protocolentities          import *
-from yowsup.layers.protocol_iq.protocolentities          import *
-from yowsup.layers.protocol_contacts.protocolentities    import *
-from yowsup.layers.protocol_profiles.protocolentities    import *
-from yowsup.layers.protocol_chatstate.protocolentities   import *
-from yowsup.layers.protocol_privacy.protocolentities     import *
-from yowsup.layers.protocol_media.protocolentities       import *
-from yowsup.layers.protocol_media.mediauploader import MediaUploader
-from yowsup.layers.axolotl.protocolentities.iq_key_get import GetKeysIqProtocolEntity
-from yowsup.layers.axolotl import YowAxolotlLayer
+from yowsup.layers.interface                           import YowInterfaceLayer, ProtocolEntityCallback
+from yowsup.layers.protocol_messages.protocolentities  import TextMessageProtocolEntity
+from yowsup.layers.protocol_media.protocolentities  import ImageDownloadableMediaMessageProtocolEntity
+from yowsup.layers.protocol_receipts.protocolentities  import OutgoingReceiptProtocolEntity
+from yowsup.layers.protocol_media.protocolentities  import LocationMediaMessageProtocolEntity
+from yowsup.layers.protocol_acks.protocolentities      import OutgoingAckProtocolEntity
+from yowsup.layers.protocol_media.protocolentities  import VCardMediaMessageProtocolEntity
 
+import os, logging
 logger = logging.getLogger(__name__)
 
-class YowsupCliLayer(YowInterfaceLayer):
-    PROP_RECEIPT_AUTO       = "org.openwhatsapp.yowsup.prop.cli.autoreceipt"
-    PROP_RECEIPT_KEEPALIVE  = "org.openwhatsapp.yowsup.prop.cli.keepalive"
-    PROP_CONTACT_JID        = "org.openwhatsapp.yowsup.prop.cli.contact.jid"
-    EVENT_LOGIN             = "org.openwhatsapp.yowsup.event.cli.login"
-    EVENT_START             = "org.openwhatsapp.yowsup.event.cli.start"
-    EVENT_SENDANDEXIT       = "org.openwhatsapp.yowsup.event.cli.sendandexit"
-
-    MESSAGE_FORMAT          = "[{FROM}({TIME})]:[{MESSAGE_ID}]\t {MESSAGE}"
-
-    DISCONNECT_ACTION_PROMPT = 0
-    DISCONNECT_ACTION_EXIT   = 1
-
-    ACCOUNT_DEL_WARNINGS = 4
+class WebsupLayer(YowInterfaceLayer):
+    EVENT_START = "org.openwhatsapp.yowsup.event.cli.start"
 
     def __init__(self):
-        super(YowsupCliLayer, self).__init__()
         YowInterfaceLayer.__init__(self)
-        self.accountDelWarnings = 0
-        self.connected = False
-        self.username = None
-        self.sendReceipts = True
-        self.iqs = {}
-        self.disconnectAction = self.__class__.DISCONNECT_ACTION_PROMPT
-
-        #add aliases to make it user to use commands. for example you can then do:
-        # /message send foobar "HI"
-        # and then it will get automaticlaly mapped to foobar's jid
-        self.jidAliases = {
-            # "NAME": "PHONE@s.whatsapp.net"
-        }
         self.queue = None
 
-    def output(self,message,tag=None,prompt=False):
+    def output(self,message,tag=None):
       out = message
       if tag:
         out = "%s: %s" % (tag,message)
@@ -66,318 +24,75 @@ class YowsupCliLayer(YowInterfaceLayer):
         self.queue.put(out) 
       print(out)
 
-    def aliasToJid(self, calias):
-        for alias, ajid in self.jidAliases.items():
-            if calias.lower() == alias.lower():
-                return self.normalizeJid(ajid)
-
-        return self.normalizeJid(calias)
-
-    def jidToAlias(self, jid):
-        for alias, ajid in self.jidAliases.items():
-            if ajid == jid:
-                return alias
-        return jid
-
-    def normalizeJid(self, number):
-        if '@' in number:
-            return number
-        elif "-" in number:
-            return "%s@g.us" % number
-
-        return "%s@s.whatsapp.net" % number
-
     def onEvent(self, layerEvent):
+        self.output("Event %s" % layerEvent.getName())
         if layerEvent.getName() == self.__class__.EVENT_START:
             self.queue = layerEvent.getArg('queue')
             self.output("Started.")
-            self.L()
             return True
-        elif layerEvent.getName() == self.__class__.EVENT_SENDANDEXIT:
-            credentials = layerEvent.getArg("credentials")
-            target = layerEvent.getArg("target")
-            message = layerEvent.getArg("message")
-            self.sendMessageAndDisconnect(credentials, target, message)
 
-            return True
-        elif layerEvent.getName() == YowNetworkLayer.EVENT_STATE_DISCONNECTED:
-            self.output("Disconnected: %s" % layerEvent.getArg("reason"))
-            os._exit(os.EX_OK)
+    @ProtocolEntityCallback("message")
+    def onMessage(self, messageProtocolEntity):
 
-    def assertConnected(self):
-        if self.connected:
-            return True
-        else:
-            self.output("Not connected", tag = "Error", prompt = False)
-            return False
-
-    def addToIqs(self, iqEntity):
-        self.iqs[iqEntity.getId()] = iqEntity
-
-    ########## PRESENCE ###############
-    def presence_name(self, name):
-        if self.assertConnected():
-            entity = PresenceProtocolEntity(name = name)
-            self.toLower(entity)
-
-    def presence_available(self):
-        if self.assertConnected():
-            entity = AvailablePresenceProtocolEntity()
-            self.toLower(entity)
-
-    def presence_unavailable(self):
-        if self.assertConnected():
-            entity = UnavailablePresenceProtocolEntity()
-            self.toLower(entity)
-
-    def presence_unsubscribe(self, contact):
-        if self.assertConnected():
-            entity = UnsubscribePresenceProtocolEntity(self.aliasToJid(contact))
-            self.toLower(entity)
-
-    def presence_subscribe(self, contact):
-        if self.assertConnected():
-            entity = SubscribePresenceProtocolEntity(self.aliasToJid(contact))
-            self.toLower(entity)
-
-    ########### END PRESENCE #############
-
-    ########### ib #######################
-    def ib_clean(self, dirtyType):
-        if self.assertConnected():
-            entity = CleanIqProtocolEntity("groups", YowConstants.DOMAIN)
-            self.toLower(entity)
-
-    def ping(self):
-        if self.assertConnected():
-            entity = PingIqProtocolEntity(to = YowConstants.DOMAIN)
-            self.toLower(entity)
-
-    ######################################
-
-    def groups_list(self):
-        if self.assertConnected():
-            entity = ListGroupsIqProtocolEntity()
-            self.toLower(entity)
-
-    def group_leave(self, jid):
-        #entity = LeaveGroupIqProtocolEntity([jid])
-        print("LEAVE GROUP %s" % jid)
-
-    def groups_create(self, subject):
-        if self.assertConnected():
-            entity = CreateGroupsIqProtocolEntity(subject)
-            self.addToIqs(entity)
-            self.toLower(entity)
-
-    def group_invite(self, group_jid, jid):
-        pass
-
-    def group_participants(self, group_jid):
-        if self.assertConnected():
-            entity = ParticipantsGroupsIqProtocolEntity(self.aliasToJid(group_jid))
-            self.toLower(entity)
-
-    def group_setSubject(self, jid, subject):
-        if self.assertConnected():
-            entity = SubjectGroupsIqProtocolEntity(self.aliasToJid(jid), subject)
-            self.toLower(entity)
-
-    def keys_get(self, jid):
-        if self.assertConnected():
-            entity = GetKeysIqProtocolEntity(self.aliasToJid(jid))
-            self.toLower(entity)
-
-    def keys_set(self):
-        if self.assertConnected():
-            self.broadcastEvent(YowLayerEvent(YowAxolotlLayer.EVENT_PREKEYS_SET))
-
-    def seq(self):
-        priv = PrivacyListIqProtocolEntity()
-        self.toLower(priv)
-        push = PushIqProtocolEntity()
-        self.toLower(push)
-        props = PropsIqProtocolEntity()
-        self.toLower(props)
-        crypto = CryptoIqProtocolEntity()
-        self.toLower(crypto)
-
-    def message_send(self, number, content):
-        if self.assertConnected():
-            outgoingMessage = TextMessageProtocolEntity(content, to = self.aliasToJid(number))
-            self.toLower(outgoingMessage)
-
-    def message_broadcast(self, numbers, content):
-        if self.assertConnected():
-            jids = [self.aliasToJid(number) for number in numbers.split(',')]
-            outgoingMessage = BroadcastTextMessage(jids, content)
-            self.toLower(outgoingMessage)
-
-    def message_read(self, message_id):
-        pass
-
-    def message_delivered(self, message_id):
-        pass
-
-    def image_send(self, number, path):
-        if self.assertConnected():
-            jid = self.aliasToJid(number)
-            entity = RequestUploadIqProtocolEntity(RequestUploadIqProtocolEntity.MEDIA_TYPE_IMAGE, filePath=path)
-            successFn = lambda successEntity, originalEntity: self.onRequestUploadResult(jid, path, successEntity, originalEntity)
-            errorFn = lambda errorEntity, originalEntity: self.onRequestUploadError(jid, path, errorEntity, originalEntity)
-
-            self._sendIq(entity, successFn, errorFn)
-
-    def state_typing(self, jid):
-        if self.assertConnected():
-            entity = OutgoingChatstateProtocolEntity(ChatstateProtocolEntity.STATE_TYPING, self.aliasToJid(jid))
-            self.toLower(entity)
-
-    def state_paused(self, jid):
-        if self.assertConnected():
-            entity = OutgoingChatstateProtocolEntity(ChatstateProtocolEntity.STATE_PAUSED, self.aliasToJid(jid))
-            self.toLower(entity)
-
-    def contacts_sync(self, contacts):
-        if self.assertConnected():
-            entity = GetSyncIqProtocolEntity(contacts.split(','))
-            self.toLower(entity)
-
-    def disconnect(self):
-        if self.assertConnected():
-            self.broadcastEvent(YowLayerEvent(YowNetworkLayer.EVENT_STATE_DISCONNECT))
-
-    def L(self):
-        return self.login(*self.getProp(YowAuthenticationProtocolLayer.PROP_CREDENTIALS))
-
-    def login(self, username, b64password):
-
-        if self.connected:
-            return self.output("Already connected, disconnect first")
-
-        self.getStack().setProp(YowAuthenticationProtocolLayer.PROP_CREDENTIALS, (username, b64password))
-        connectEvent = YowLayerEvent(YowNetworkLayer.EVENT_STATE_CONNECT)
-        self.broadcastEvent(connectEvent)
-        return True #prompt will wait until notified
-
-
-
-    ######## receive #########
-
-    @ProtocolEntityCallback("chatstate")
-    def onChatstate(self, entity):
-        print(entity)
-
-    @ProtocolEntityCallback("iq")
-    def onIq(self, entity):
-        print(entity)
-
+        if not messageProtocolEntity.isGroupMessage():
+            if messageProtocolEntity.getType() == 'text':
+                self.onTextMessage(messageProtocolEntity)
+            elif messageProtocolEntity.getType() == 'media':
+                self.onMediaMessage(messageProtocolEntity)
+    
     @ProtocolEntityCallback("receipt")
     def onReceipt(self, entity):
         ack = OutgoingAckProtocolEntity(entity.getId(), "receipt", "delivery")
         self.toLower(ack)
 
-    @ProtocolEntityCallback("ack")
-    def onAck(self, entity):
-        #formattedDate = datetime.datetime.fromtimestamp(self.sentCache[entity.getId()][0]).strftime('%d-%m-%Y %H:%M')
-        #print("%s [%s]:%s"%(self.username, formattedDate, self.sentCache[entity.getId()][1]))
-        if entity.getClass() == "message":
-            self.output(entity.getId(), tag = "Sent")
+    def onTextMessage(self,messageProtocolEntity):
+        receipt = OutgoingReceiptProtocolEntity(messageProtocolEntity.getId(), messageProtocolEntity.getFrom())
+            
+        outgoingMessageProtocolEntity = TextMessageProtocolEntity(
+            messageProtocolEntity.getBody(),
+            to = messageProtocolEntity.getFrom())
 
-    @ProtocolEntityCallback("success")
-    def onSuccess(self, entity):
-        self.connected = True
-        self.output("Logged in!", "Auth", prompt = False)
+        self.output("Echoing %s to %s" % (messageProtocolEntity.getBody(), messageProtocolEntity.getFrom(False)))
 
-    @ProtocolEntityCallback("failure")
-    def onFailure(self, entity):
-        self.connected = False
-        self.output("Login Failed, reason: %s" % entity.getReason(), prompt = False)
+        #send receipt otherwise we keep receiving the same message over and over
+        self.toLower(receipt)
+        self.toLower(outgoingMessageProtocolEntity)
 
-    @ProtocolEntityCallback("notification")
-    def onNotification(self, notification):
-        notificationData = notification.__str__()
-        if notificationData:
-            self.output(notificationData, tag = "Notification")
-        else:
-            self.output("From :%s, Type: %s" % (self.jidToAlias(notification.getFrom()), notification.getType()), tag = "Notification")
-        if self.sendReceipts:
-            receipt = OutgoingReceiptProtocolEntity(notification.getId(), notification.getFrom())
+    def onMediaMessage(self, messageProtocolEntity):
+        if messageProtocolEntity.getMediaType() == "image":
+            
+            receipt = OutgoingReceiptProtocolEntity(messageProtocolEntity.getId(), messageProtocolEntity.getFrom())
+
+            outImage = ImageDownloadableMediaMessageProtocolEntity(
+                messageProtocolEntity.getMimeType(), messageProtocolEntity.fileHash, messageProtocolEntity.url, messageProtocolEntity.ip,
+                messageProtocolEntity.size, messageProtocolEntity.fileName, messageProtocolEntity.encoding, messageProtocolEntity.width, messageProtocolEntity.height,
+                messageProtocolEntity.getCaption(),
+                to = messageProtocolEntity.getFrom(), preview = messageProtocolEntity.getPreview())
+
+            self.output("Echoing image %s to %s" % (messageProtocolEntity.url, messageProtocolEntity.getFrom(False)))
+
+            #send receipt otherwise we keep receiving the same message over and over
             self.toLower(receipt)
+            self.toLower(outImage)
 
-    @ProtocolEntityCallback("message")
-    def onMessage(self, message):
-        messageOut = ""
-        if message.getType() == "text":
-            #self.output(message.getBody(), tag = "%s [%s]"%(message.getFrom(), formattedDate))
-            messageOut = self.getTextMessageBody(message)
-        elif message.getType() == "media":
-            messageOut = self.getMediaMessageBody(message)
-        else:
-            messageOut = "Unknown message type %s " % message.getType()
-            print(message.toProtocolTreeNode())
+        elif messageProtocolEntity.getMediaType() == "location":
 
+            receipt = OutgoingReceiptProtocolEntity(messageProtocolEntity.getId(), messageProtocolEntity.getFrom())
 
-        formattedDate = datetime.datetime.fromtimestamp(message.getTimestamp()).strftime('%d-%m-%Y %H:%M')
-        output = self.__class__.MESSAGE_FORMAT.format(
-            FROM = message.getFrom(),
-            TIME = formattedDate,
-            MESSAGE = messageOut.encode('latin-1').decode() if sys.version_info >= (3, 0) else messageOut,
-            MESSAGE_ID = message.getId()
-            )
+            outLocation = LocationMediaMessageProtocolEntity(messageProtocolEntity.getLatitude(),
+                messageProtocolEntity.getLongitude(), messageProtocolEntity.getLocationName(),
+                messageProtocolEntity.getLocationURL(), messageProtocolEntity.encoding,
+                to = messageProtocolEntity.getFrom(), preview=messageProtocolEntity.getPreview())
 
-        self.output(output, tag = None, prompt = not self.sendReceipts)
-        if self.sendReceipts:
-            receipt = OutgoingReceiptProtocolEntity(message.getId(), message.getFrom())
+            self.output("Echoing location (%s, %s) to %s" % (messageProtocolEntity.getLatitude(), messageProtocolEntity.getLongitude(), messageProtocolEntity.getFrom(False)))
+
+            #send receipt otherwise we keep receiving the same message over and over
+            self.toLower(outLocation)
             self.toLower(receipt)
-            self.output("Sent delivered receipt", tag = "Message %s" % message.getId())
-
-
-    def getTextMessageBody(self, message):
-        return message.getBody()
-
-    def getMediaMessageBody(self, message):
-        if message.getMediaType() in ("image", "audio", "video"):
-            return self.getDownloadableMediaMessageBody(message)
-        else:
-            return "[Media Type: %s]" % message.getMediaType()
-       
-
-    def getDownloadableMediaMessageBody(self, message):
-         return "[Media Type:{media_type}, Size:{media_size}, URL:{media_url}]".format(
-            media_type = message.getMediaType(),
-            media_size = message.getMediaSize(),
-            media_url = message.getMediaUrl()
-            )
-
-
-    def doSendImage(self, filePath, url, to, ip = None):
-        entity = ImageDownloadableMediaMessageProtocolEntity.fromFilePath(filePath, url, ip, to)
-        self.toLower(entity)
-
-    ########### callbacks ############
-
-    def onRequestUploadResult(self, jid, filePath, resultRequestUploadIqProtocolEntity, requestUploadIqProtocolEntity):
-        if resultRequestUploadIqProtocolEntity.isDuplicate():
-            self.doSendImage(filePath, resultRequestUploadIqProtocolEntity.getUrl(), jid,
-                             resultRequestUploadIqProtocolEntity.getIp())
-        else:
-            # successFn = lambda filePath, jid, url: self.onUploadSuccess(filePath, jid, url, resultRequestUploadIqProtocolEntity.getIp())
-            mediaUploader = MediaUploader(jid, self.getOwnJid(), filePath,
-                                      resultRequestUploadIqProtocolEntity.getUrl(),
-                                      resultRequestUploadIqProtocolEntity.getResumeOffset(),
-                                      self.onUploadSuccess, self.onUploadError, self.onUploadProgress, async=False)
-            mediaUploader.start()
-
-    def onRequestUploadError(self, jid, path, errorRequestUploadIqProtocolEntity, requestUploadIqProtocolEntity):
-        logger.error("Request upload for file %s for %s failed" % (path, jid))
-
-    def onUploadSuccess(self, filePath, jid, url):
-        self.doSendImage(filePath, url, jid)
-
-    def onUploadError(self, filePath, jid, url):
-        logger.error("Upload file %s to %s for %s failed!" % (filePath, url, jid))
-
-    def onUploadProgress(self, filePath, jid, url, progress):
-        sys.stdout.write("%s => %s, %d%% \r" % (os.path.basename(filePath), jid, progress))
-        sys.stdout.flush()
+        elif messageProtocolEntity.getMediaType() == "vcard":
+            receipt = OutgoingReceiptProtocolEntity(messageProtocolEntity.getId(), messageProtocolEntity.getFrom())
+            outVcard = VCardMediaMessageProtocolEntity(messageProtocolEntity.getName(),messageProtocolEntity.getCardData(),to = messageProtocolEntity.getFrom())
+            self.output("Echoing vcard (%s, %s) to %s" % (messageProtocolEntity.getName(), messageProtocolEntity.getCardData(), messageProtocolEntity.getFrom(False)))
+            #send receipt otherwise we keep receiving the same message over and over
+            self.toLower(outVcard)
+            self.toLower(receipt)

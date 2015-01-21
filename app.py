@@ -1,5 +1,9 @@
 #!/usr/bin/env python
 
+import logging
+import logging.config
+logging.config.fileConfig('logging.conf')
+
 import sys
 import json
 import gevent
@@ -8,8 +12,6 @@ from bottle.ext.websocket import GeventWebSocketServer
 from bottle.ext.websocket import websocket
 from cli import stack
 from cli.queue import Queue, QueueItem
-import logging
-import logging.config
 import os
 
 try:
@@ -38,7 +40,7 @@ for getting further help.
   """
     sys.exit(1)
 
-logging.config.fileConfig('logging.conf')
+logger = logging.getLogger()
 queue = Queue()
 stack = stack.WebsupStack((phone, password))
 
@@ -58,6 +60,8 @@ def echo(ws):
         msg = ws.receive()
         if msg is None:
             break
+        if msg != '':
+            logger.info(msg)
         for item in queue:
             out = u'%s' % item
             ws.send(out)
@@ -65,7 +69,7 @@ def echo(ws):
 
 @bottle.route('/static/<filename:path>')
 def send_static(filename):
-    return static_file(filename, root=here('static'))
+    return bottle.static_file(filename, root=here('static'))
 
 
 def yowsup():

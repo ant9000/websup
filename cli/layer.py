@@ -38,68 +38,36 @@ class WebsupLayer(YowInterfaceLayer):
 
     @ProtocolEntityCallback("message")
     def onMessage(self, messageProtocolEntity):
-        if not messageProtocolEntity.isGroupMessage():
-            text, outMessage = None, None
-            receipt = OutgoingReceiptProtocolEntity(
-                messageProtocolEntity.getId(), messageProtocolEntity.getFrom()
-            )
-            if messageProtocolEntity.getType() == 'text':
-                text = messageProtocolEntity.getBody()
-                outMessage = TextMessageProtocolEntity(
-                    messageProtocolEntity.getBody(),
-                    to=messageProtocolEntity.getFrom(),
+        receipt = OutgoingReceiptProtocolEntity(
+            messageProtocolEntity.getId(),
+            messageProtocolEntity.getFrom(),
+        )
+        # send receipt otherwise we keep receiving the same message
+        # over and over
+        self.toLower(receipt)
+
+        text = None
+        if messageProtocolEntity.getType() == 'text':
+            text = messageProtocolEntity.getBody()
+        elif messageProtocolEntity.getType() == 'media':
+            media_type = messageProtocolEntity.getMediaType()
+            if media_type in ["image", "audio", "video"]:
+                text = '%s: <a href="%s">%s</a>' % (
+                    media_type.capitalize(),
+                    messageProtocolEntity.url,
+                    messageProtocolEntity.getCaption(),
                 )
-            elif messageProtocolEntity.getType() == 'media':
-                if messageProtocolEntity.getMediaType() == "image":
-                    text = messageProtocolEntity.url
-                    outMessage = ImageDownloadableMediaMessageProtocolEntity(
-                        messageProtocolEntity.getMimeType(),
-                        messageProtocolEntity.fileHash,
-                        messageProtocolEntity.url,
-                        messageProtocolEntity.ip,
-                        messageProtocolEntity.size,
-                        messageProtocolEntity.fileName,
-                        messageProtocolEntity.encoding,
-                        messageProtocolEntity.width,
-                        messageProtocolEntity.height,
-                        messageProtocolEntity.getCaption(),
-                        to=messageProtocolEntity.getFrom(),
-                        preview=messageProtocolEntity.getPreview(),
-                    )
-                elif messageProtocolEntity.getMediaType() == "location":
-                    text = "(%s,%s)" % (
-                        messageProtocolEntity.getLatitude(),
-                        messageProtocolEntity.getLongitude(),
-                    )
-                    outMessage = LocationMediaMessageProtocolEntity(
-                        messageProtocolEntity.getLatitude(),
-                        messageProtocolEntity.getLongitude(),
-                        messageProtocolEntity.getLocationName(),
-                        messageProtocolEntity.getLocationURL(),
-                        messageProtocolEntity.encoding,
-                        to=messageProtocolEntity.getFrom(),
-                        preview=messageProtocolEntity.getPreview(),
-                    )
-                elif messageProtocolEntity.getMediaType() == "vcard":
-                    text = "%s:%s" % (
-                        messageProtocolEntity.getName(),
-                        messageProtocolEntity.getCardData(),
-                    )
-                    outMessage = VCardMediaMessageProtocolEntity(
-                        messageProtocolEntity.getName(),
-                        messageProtocolEntity.getCardData(),
-                        to=messageProtocolEntity.getFrom(),
-                    )
-            if outMessage:
-                # send receipt otherwise we keep receiving the same message
-                # over and over
-                self.toLower(receipt)
-                self.toLower(outMessage)
-                self.output(
-                    text,
-                    messageProtocolEntity.getFrom(full=False),
-                    messageProtocolEntity,
+            elif media_type == "location":
+                text = "Location: (%s,%s)" % (
+                    messageProtocolEntity.getLatitude(),
+                    messageProtocolEntity.getLongitude(),
                 )
+        if text:
+            sender = messageProtocolEntity.getFrom(full=False)
+            notify = messageProtocolEntity.getNotify()
+            if notify:
+                sender = "%s - %s" % (sender, notify)
+            self.output(text, sender, messageProtocolEntity)
 
     @ProtocolEntityCallback("receipt")
     def onReceipt(self, entity):

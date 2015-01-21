@@ -7,7 +7,7 @@ class QueueItem:
         self.sender = sender
         self.data = data
 
-    def __unicode__(self):
+    def __str__(self):
         out = unicode(self.text)
         if self.sender:
             out = '%s: %s' % (unicode(self.sender), out)

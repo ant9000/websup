@@ -1,13 +1,19 @@
-from yowsup.layers.interface                           import YowInterfaceLayer, ProtocolEntityCallback
-from yowsup.layers.protocol_messages.protocolentities  import TextMessageProtocolEntity
-from yowsup.layers.protocol_media.protocolentities  import ImageDownloadableMediaMessageProtocolEntity
-from yowsup.layers.protocol_receipts.protocolentities  import OutgoingReceiptProtocolEntity
-from yowsup.layers.protocol_media.protocolentities  import LocationMediaMessageProtocolEntity
-from yowsup.layers.protocol_acks.protocolentities      import OutgoingAckProtocolEntity
-from yowsup.layers.protocol_media.protocolentities  import VCardMediaMessageProtocolEntity
+from yowsup.layers.interface import YowInterfaceLayer, ProtocolEntityCallback
+from yowsup.layers.protocol_messages.protocolentities import \
+    TextMessageProtocolEntity
+from yowsup.layers.protocol_media.protocolentities import \
+    ImageDownloadableMediaMessageProtocolEntity, \
+    LocationMediaMessageProtocolEntity, \
+    VCardMediaMessageProtocolEntity
+from yowsup.layers.protocol_receipts.protocolentities import \
+    OutgoingReceiptProtocolEntity
+from yowsup.layers.protocol_acks.protocolentities import \
+    OutgoingAckProtocolEntity
 
-import os, logging
+import os
+import logging
 logger = logging.getLogger(__name__)
+
 
 class WebsupLayer(YowInterfaceLayer):
     EVENT_START = "org.openwhatsapp.yowsup.event.cli.start"
@@ -16,15 +22,15 @@ class WebsupLayer(YowInterfaceLayer):
         YowInterfaceLayer.__init__(self)
         self.queue = None
 
-    def output(self,text,sender=None,data=None):
-      out = {
-        'text':   text,
-        'sender': sender,
-        'data':   data,
-      }
-      if self.queue:
-        self.queue.put(out) 
-      print(out)
+    def output(self, text, sender=None, data=None):
+        out = {
+            'text':   text,
+            'sender': sender,
+            'data':   data,
+        }
+        if self.queue:
+            self.queue.put(out)
+        print(out)
 
     def onEvent(self, layerEvent):
         self.output("Event %s" % layerEvent.getName())
@@ -37,37 +43,65 @@ class WebsupLayer(YowInterfaceLayer):
     def onMessage(self, messageProtocolEntity):
         if not messageProtocolEntity.isGroupMessage():
             text, outMessage = None, None
-            receipt = OutgoingReceiptProtocolEntity(messageProtocolEntity.getId(), messageProtocolEntity.getFrom())
+            receipt = OutgoingReceiptProtocolEntity(
+                messageProtocolEntity.getId(), messageProtocolEntity.getFrom()
+            )
             if messageProtocolEntity.getType() == 'text':
-                text       = messageProtocolEntity.getBody() 
-                outMessage = TextMessageProtocolEntity(messageProtocolEntity.getBody(), to = messageProtocolEntity.getFrom())
+                text = messageProtocolEntity.getBody()
+                outMessage = TextMessageProtocolEntity(
+                    messageProtocolEntity.getBody(),
+                    to=messageProtocolEntity.getFrom(),
+                )
             elif messageProtocolEntity.getType() == 'media':
                 if messageProtocolEntity.getMediaType() == "image":
-                    text       = messageProtocolEntity.url
+                    text = messageProtocolEntity.url
                     outMessage = ImageDownloadableMediaMessageProtocolEntity(
-                        messageProtocolEntity.getMimeType(), messageProtocolEntity.fileHash, messageProtocolEntity.url, messageProtocolEntity.ip,
-                        messageProtocolEntity.size, messageProtocolEntity.fileName, messageProtocolEntity.encoding,
-                        messageProtocolEntity.width, messageProtocolEntity.height, messageProtocolEntity.getCaption(),
-                        to = messageProtocolEntity.getFrom(), preview = messageProtocolEntity.getPreview()
+                        messageProtocolEntity.getMimeType(),
+                        messageProtocolEntity.fileHash,
+                        messageProtocolEntity.url,
+                        messageProtocolEntity.ip,
+                        messageProtocolEntity.size,
+                        messageProtocolEntity.fileName,
+                        messageProtocolEntity.encoding,
+                        messageProtocolEntity.width,
+                        messageProtocolEntity.height,
+                        messageProtocolEntity.getCaption(),
+                        to=messageProtocolEntity.getFrom(),
+                        preview=s messageProtocolEntity.getPreview(),
                     )
                 elif messageProtocolEntity.getMediaType() == "location":
-                    text       = "(%s,%s)" % (messageProtocolEntity.getLatitude(), messageProtocolEntity.getLongitude())
+                    text = "(%s,%s)" % (
+                        messageProtocolEntity.getLatitude(),
+                        messageProtocolEntity.getLongitude(),
+                    )
                     outMessage = LocationMediaMessageProtocolEntity(
-                        messageProtocolEntity.getLatitude(), messageProtocolEntity.getLongitude(), messageProtocolEntity.getLocationName(),
-                        messageProtocolEntity.getLocationURL(), messageProtocolEntity.encoding,
-                        to = messageProtocolEntity.getFrom(), preview=messageProtocolEntity.getPreview()
+                        messageProtocolEntity.getLatitude(),
+                        messageProtocolEntity.getLongitude(),
+                        messageProtocolEntity.getLocationName(),
+                        messageProtocolEntity.getLocationURL(),
+                        messageProtocolEntity.encoding,
+                        to=messageProtocolEntity.getFrom(),
+                        preview=messageProtocolEntity.getPreview(),
                     )
                 elif messageProtocolEntity.getMediaType() == "vcard":
-                    text       = "%s:%s" % (messageProtocolEntity.getName(), messageProtocolEntity.getCardData())
+                    text = "%s:%s" % (
+                        messageProtocolEntity.getName(),
+                        messageProtocolEntity.getCardData(),
+                    )
                     outMessage = VCardMediaMessageProtocolEntity(
-                        messageProtocolEntity.getName(),messageProtocolEntity.getCardData(), to = messageProtocolEntity.getFrom()
+                        messageProtocolEntity.getName(),
+                        messageProtocolEntity.getCardData(),
+                        to=messageProtocolEntity.getFrom(),
                     )
             if outMessage:
-                #send receipt otherwise we keep receiving the same message over and over
+                # send receipt otherwise we keep receiving the same message
+                # over and over
                 self.toLower(receipt)
                 self.toLower(outMessage)
-                self.output(text, messageProtocolEntity.getFrom(full=False), outMessage)
-    
+                self.output(
+                    text, messageProtocolEntity.getFrom(full=False), outMessage
+                )
+
     @ProtocolEntityCallback("receipt")
     def onReceipt(self, entity):
         ack = OutgoingAckProtocolEntity(entity.getId(), "receipt", "delivery")

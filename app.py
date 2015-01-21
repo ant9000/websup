@@ -6,8 +6,8 @@ import gevent
 import bottle
 from bottle.ext.websocket import GeventWebSocketServer
 from bottle.ext.websocket import websocket
-from gevent.queue import Queue
 from cli import stack
+from cli.queue import Queue, QueueItem
 import logging
 import logging.config
 import os
@@ -59,9 +59,7 @@ def echo(ws):
         if msg is None:
             break
         for item in queue:
-            out = item['text']
-            if item['sender'] is not None:
-                out = '%s: %s' % (item['sender'], item['text'])
+            out = u'%s' % item
             ws.send(out)
 
 

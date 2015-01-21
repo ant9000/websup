@@ -10,6 +10,7 @@ from yowsup.layers.protocol_receipts.protocolentities import \
 from yowsup.layers.protocol_acks.protocolentities import \
     OutgoingAckProtocolEntity
 
+from .queue import QueueItem
 import os
 import logging
 logger = logging.getLogger(__name__)
@@ -23,14 +24,10 @@ class WebsupLayer(YowInterfaceLayer):
         self.queue = None
 
     def output(self, text, sender=None, data=None):
-        out = {
-            'text':   text,
-            'sender': sender,
-            'data':   data,
-        }
+        item = QueueItem(text, sender, data)
         if self.queue:
-            self.queue.put(out)
-        print(out)
+            self.queue.put(item)
+        print(item)
 
     def onEvent(self, layerEvent):
         self.output("Event %s" % layerEvent.getName())
@@ -67,7 +64,7 @@ class WebsupLayer(YowInterfaceLayer):
                         messageProtocolEntity.height,
                         messageProtocolEntity.getCaption(),
                         to=messageProtocolEntity.getFrom(),
-                        preview=s messageProtocolEntity.getPreview(),
+                        preview=messageProtocolEntity.getPreview(),
                     )
                 elif messageProtocolEntity.getMediaType() == "location":
                     text = "(%s,%s)" % (
@@ -99,7 +96,9 @@ class WebsupLayer(YowInterfaceLayer):
                 self.toLower(receipt)
                 self.toLower(outMessage)
                 self.output(
-                    text, messageProtocolEntity.getFrom(full=False), outMessage
+                    text,
+                    messageProtocolEntity.getFrom(full=False),
+                    messageProtocolEntity,
                 )
 
     @ProtocolEntityCallback("receipt")

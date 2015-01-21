@@ -23,17 +23,11 @@ class WebsupLayer(YowInterfaceLayer):
         YowInterfaceLayer.__init__(self)
         self.queue = None
 
-    def output(self, text, sender=None, data=None):
-        item = QueueItem(text, sender, data)
-        if self.queue:
-            self.queue.put(item)
-        print(item)
-
     def onEvent(self, layerEvent):
-        self.output("Event %s" % layerEvent.getName())
+        logger.info("Event %s" % layerEvent.getName())
         if layerEvent.getName() == self.__class__.EVENT_START:
             self.queue = layerEvent.getArg('queue')
-            self.output("Started.")
+            logger.info("Started.")
             return True
 
     @ProtocolEntityCallback("message")
@@ -67,7 +61,9 @@ class WebsupLayer(YowInterfaceLayer):
             notify = messageProtocolEntity.getNotify()
             if notify:
                 sender = "%s - %s" % (sender, notify)
-            self.output(text, sender, messageProtocolEntity)
+            item = QueueItem(text, sender, messageProtocolEntity)
+            self.queue.put(item)
+            logger.debug(item)
 
     @ProtocolEntityCallback("receipt")
     def onReceipt(self, entity):

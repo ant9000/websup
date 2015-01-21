@@ -46,7 +46,7 @@ class WebsupLayer(YowInterfaceLayer):
         elif messageProtocolEntity.getType() == 'media':
             media_type = messageProtocolEntity.getMediaType()
             if media_type in ["image", "audio", "video"]:
-                text = '%s: <a href="%s">%s</a>' % (
+                text = '%s: <a href="%s" target="_new">%s</a>' % (
                     media_type.capitalize(),
                     messageProtocolEntity.url,
                     messageProtocolEntity.getCaption(),

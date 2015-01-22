@@ -3,4 +3,4 @@ bottle-beaker==0.1.0
 bottle-cork==0.10
 bottle-websocket==0.2.8
 yowsup2==2.2.15
-#git+https://github.com/tgalal/yowsup.git@master
+django-emoji==2.0.0

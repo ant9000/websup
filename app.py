@@ -12,6 +12,7 @@ from bottle.ext.websocket import GeventWebSocketServer
 from bottle.ext.websocket import websocket
 from cli import stack
 from cli.queue import Queue, QueueItem
+from cli import myemoji
 import os
 
 try:
@@ -63,10 +64,15 @@ def echo(ws):
                 break
             logger.info(msg)
             for item in queue:
-                out = u'%s' % item
+                out = myemoji.replace(unicode(item))
                 ws.send(out)
         except WebSocketError:
             break
+
+
+@bottle.route('/static/emoji/<filename:path>')
+def send_static(filename):
+    return bottle.static_file(filename, root=myemoji.EMOJI_STATIC_ROOT)
 
 
 @bottle.route('/static/<filename:path>')

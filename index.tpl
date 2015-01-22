@@ -7,6 +7,7 @@
         li { list-style: none; }
         #connection { background: url(/static/img/bullet-black-icon.png) no-repeat; padding-left: 36px; }
         #connection.connected { background-image: url(/static/img/bullet-blue-icon.png); }
+        .emoji { width: 18px; height: 18px; }
     </style>
 
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>

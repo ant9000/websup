@@ -11,7 +11,9 @@ from yowsup.layers.protocol_acks.protocolentities import \
     OutgoingAckProtocolEntity
 
 from .queue import QueueItem
+from . import myemoji
 import os
+import binascii
 import logging
 logger = logging.getLogger(__name__)
 
@@ -42,14 +44,23 @@ class WebsupLayer(YowInterfaceLayer):
 
         text = None
         if messageProtocolEntity.getType() == 'text':
-            text = messageProtocolEntity.getBody()
+            text = myemoji.escape(messageProtocolEntity.getBody())
         elif messageProtocolEntity.getType() == 'media':
             media_type = messageProtocolEntity.getMediaType()
             if media_type in ["image", "audio", "video"]:
+                text = myemoji.escape(messageProtocolEntity.getCaption())
+                thumb = messageProtocolEntity.getPreview()
+                if media_type == "image" and thumb:
+                    # encode as data-uri
+                    text = '<img src="data:%s;base64,%s" title="%s"/>' % (
+                        'image/jpeg',
+                        binascii.b2a_base64(thumb),
+                        myemoji.escapejs(messageProtocolEntity.getCaption())
+                    )
                 text = '%s: <a href="%s" target="_new">%s</a>' % (
                     media_type.capitalize(),
                     messageProtocolEntity.url,
-                    messageProtocolEntity.getCaption(),
+                    text,
                 )
             elif media_type == "location":
                 text = "Location: (%s,%s)" % (
@@ -58,9 +69,11 @@ class WebsupLayer(YowInterfaceLayer):
                 )
         if text:
             sender = messageProtocolEntity.getFrom(full=False)
-            notify = messageProtocolEntity.getNotify()
+            notify = myemoji.escape(messageProtocolEntity.getNotify())
             if notify:
                 sender = "%s - %s" % (sender, notify)
+            text = myemoji.replace(text)
+            sender = myemoji.replace(sender)
             item = QueueItem(text, sender, messageProtocolEntity)
             self.queue.put(item)
             logger.debug(item)

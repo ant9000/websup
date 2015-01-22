@@ -10,6 +10,7 @@ import gevent
 import bottle
 from bottle.ext.websocket import GeventWebSocketServer
 from bottle.ext.websocket import websocket
+from geventwebsocket import WebSocketError
 from cli import stack
 from cli.queue import Queue, QueueItem
 from cli import myemoji
@@ -64,9 +65,9 @@ def echo(ws):
                 break
             logger.info(msg)
             for item in queue:
-                out = myemoji.replace(unicode(item))
-                ws.send(out)
-        except WebSocketError:
+                ws.send(u'%s' % item)
+        except WebSocketError,e:
+            logger.error(e)
             break
 
 

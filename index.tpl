@@ -13,15 +13,11 @@
     <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
     <script>
         $(document).ready(function() {
-            function log(message){
-                $('#messages').append("<li>"+message+"</li>");
-                $('#messages li:last').get(0).scrollIntoView();
-            }
             if (!window.WebSocket) {
                 if (window.MozWebSocket) {
                     window.WebSocket = window.MozWebSocket;
                 } else {
-                    log("Your browser doesn't support WebSockets.");
+                    alert("Your browser doesn't support WebSockets.");
                     return;
                 }
             }
@@ -35,7 +31,9 @@
                   $('#connection').addClass('connected');
               }
               ws.onmessage = function(evt) {
-                  log(evt.data);
+                var message = evt.data;
+                $('#messages').append("<li>"+message+"</li>");
+                $('#messages li:last').get(0).scrollIntoView();
               }
               ws.onclose = function(evt) {
                   $('#connection').removeClass('connected');

@@ -1,0 +1,46 @@
+body {
+  padding: 0 10px;
+  margin:0;
+  font:1em/1.4 Cambria, Georgia, sans-serif;
+  color:#333;
+  background:#fff;
+}
+
+#connection { background: url(/static/img/bullet-black-icon.png) no-repeat; padding-left: 36px; }
+#connection.connected { background-image: url(/static/img/bullet-blue-icon.png); }
+#connection.logged-in { background-image: url(/static/img/bullet-green-icon.png); }
+#connection.error     { background-image: url(/static/img/bullet-red-icon.png); }
+.emoji { width: 18px; height: 18px; }
+
+/* http://html-generator.weebly.com/css-speech-bubble-generator.html */
+.bubble {
+    position: relative;
+    width: 300px;
+    min-height: 25px;
+    padding: 10px;
+    margin-bottom: 20px;
+    background: -webkit-linear-gradient(90deg, #B0B0B0 5%, #EDEDED 100%);
+    background: -moz-linear-gradient(90deg, #B0B0B0 5%, #EDEDED 100%);
+    background: -ms-linear-gradient(90deg, #B0B0B0 5%, #EDEDED 100%);
+    background: linear-gradient(180deg, #EDEDED 5%, #B0B0B0 100%);
+    filter: progid:DXImageTransform.Microsoft.gradient(startColorstr='#EDEDED', endColorstr='#B0B0B0');
+    -webkit-border-radius: 5px;
+    -moz-border-radius: 5px;
+    border-radius: 5px;
+    -webkit-box-shadow: 2px 2px 10px 0px #616161;
+    -moz-box-shadow: 2px 2px 10px 0px #616161;
+    box-shadow: 2px 2px 10px 0px #616161;
+}
+
+.bubble:after {
+    content: "";
+    position: absolute;
+    top: -15px;
+    left: 38px;
+    border-style: solid;
+    border-width: 0 15px 15px;
+    border-color: #ededed transparent;
+    display: block;
+    width: 0;
+    z-index: 1;
+}

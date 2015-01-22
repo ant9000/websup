@@ -2,15 +2,9 @@
 <head>
     <meta charset="utf-8" />
     <title>WebSup</title>
-
-    <style>
-        li { list-style: none; }
-        #connection { background: url(/static/img/bullet-black-icon.png) no-repeat; padding-left: 36px; }
-        #connection.connected { background-image: url(/static/img/bullet-blue-icon.png); }
-        .emoji { width: 18px; height: 18px; }
-    </style>
-
-    <script src="http://ajax.googleapis.com/ajax/libs/jquery/1.6.4/jquery.min.js"></script>
+    <link rel="shortcut icon" href="/static/img/favicon.ico" type="image/x-icon" sizes="16x16 24x24 32x32 64x64"/>
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="/static/js/jquery-1.11.2.min.js"></script>
     <script>
         $(document).ready(function() {
             if (!window.WebSocket) {
@@ -31,9 +25,9 @@
                   $('#connection').addClass('connected');
               }
               ws.onmessage = function(evt) {
-                var message = evt.data;
-                $('#messages').append("<li>"+message+"</li>");
-                $('#messages li:last').get(0).scrollIntoView();
+                var message = JSON.parse(evt.data);
+                $('body').append('<div class="bubble">'+message.text+'</div>');
+                $('body .bubble:last').get(0).scrollIntoView();
               }
               ws.onclose = function(evt) {
                   $('#connection').removeClass('connected');
@@ -51,6 +45,5 @@
 </head>
 <body>
     <div id="connection"><h2>Websup!</h2></div>
-    <div id="messages" style="height:400px;overflow:auto;border:1px solid #ccc;margin:2px;padding:2px;"></div>
 </body>
 </html>

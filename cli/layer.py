@@ -26,7 +26,7 @@ class WebsupLayer(YowInterfaceLayer):
         self.queue = None
 
     def onEvent(self, layerEvent):
-        logger.info("Event %s" % layerEvent.getName())
+        logger.info("Event %s", layerEvent.getName())
         if layerEvent.getName() == self.__class__.EVENT_START:
             self.queue = layerEvent.getArg('queue')
             logger.info("Started.")
@@ -34,6 +34,13 @@ class WebsupLayer(YowInterfaceLayer):
 
     @ProtocolEntityCallback("message")
     def onMessage(self, messageProtocolEntity):
+        logger.info(
+            "Message %s: %s %s - type %s", 
+            messageProtocolEntity.getId(),
+            messageProtocolEntity.getFrom(),
+            messageProtocolEntity.getNotify(),
+            messageProtocolEntity.getType()
+        )
         receipt = OutgoingReceiptProtocolEntity(
             messageProtocolEntity.getId(),
             messageProtocolEntity.getFrom(),
@@ -57,8 +64,7 @@ class WebsupLayer(YowInterfaceLayer):
                         binascii.b2a_base64(thumb),
                         myemoji.escapejs(messageProtocolEntity.getCaption())
                     )
-                text = '%s: <a href="%s" target="_new">%s</a>' % (
-                    media_type.capitalize(),
+                text = '<a href="%s" target="_blank">%s</a>' % (
                     messageProtocolEntity.url,
                     text,
                 )
@@ -68,13 +74,14 @@ class WebsupLayer(YowInterfaceLayer):
                     messageProtocolEntity.getLongitude(),
                 )
         if text:
+            timestamp = messageProtocolEntity.getTimestamp()
             sender = messageProtocolEntity.getFrom(full=False)
             notify = myemoji.escape(messageProtocolEntity.getNotify())
             if notify:
                 sender = "%s - %s" % (sender, notify)
             text = myemoji.replace(text)
             sender = myemoji.replace(sender)
-            item = QueueItem(text, sender, messageProtocolEntity)
+            item = QueueItem(timestamp, text, sender, messageProtocolEntity)
             self.queue.put(item)
             logger.debug(item)
 

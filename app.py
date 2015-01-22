@@ -65,7 +65,7 @@ def echo(ws):
                 break
             logger.info(msg)
             for item in queue:
-                ws.send(u'%s' % item)
+                ws.send(item.toJson())
         except WebSocketError,e:
             logger.error(e)
             break
@@ -83,6 +83,7 @@ def send_static(filename):
 
 def yowsup():
     stack.start(queue)
+
 
 try:
     gevent.spawn(yowsup)

@@ -57,14 +57,16 @@ def index():
 @bottle.route('/websocket', apply=[websocket])
 def echo(ws):
     while True:
-        msg = ws.receive()
-        if msg is None:
-            break
-        if msg != '':
+        try:
+            msg = ws.receive()
+            if msg is None:
+                break
             logger.info(msg)
-        for item in queue:
-            out = u'%s' % item
-            ws.send(out)
+            for item in queue:
+                out = u'%s' % item
+                ws.send(out)
+        except WebSocketError:
+            break
 
 
 @bottle.route('/static/<filename:path>')

@@ -53,7 +53,7 @@ def here(path):
 
 @bottle.route('/')
 def index():
-    return bottle.template('index')
+    return bottle.static_file('index.html', root=here('static'))
 
 
 @bottle.route('/websocket', apply=[websocket])
@@ -85,8 +85,16 @@ def yowsup():
     stack.start(queue)
 
 
+def test_messages():
+    while True:
+        item = QueueItem(text='heartbeat', sender='Ant9000')
+        queue.put(item)
+        logger.info(item)
+        gevent.sleep(10)
+
 try:
     gevent.spawn(yowsup)
+#   gevent.spawn(test_messages)
     bottle.run(host='127.0.0.1', port=8080, server=GeventWebSocketServer)
 except KeyboardInterrupt:
     print "Exit."

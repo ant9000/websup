@@ -66,7 +66,7 @@ def echo(ws):
             logger.info(msg)
             for item in queue:
                 ws.send(item.toJson())
-        except WebSocketError,e:
+        except WebSocketError, e:
             logger.error(e)
             break
 

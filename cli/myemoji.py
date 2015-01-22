@@ -7,6 +7,7 @@ from os import path
 
 EMOJI_STATIC_ROOT = path.join(path.dirname(emoji.__file__), 'static', 'emoji')
 
+
 def replace(s):
     out = emoji.models.Emoji.replace_unicode(s)
     return out

@@ -35,7 +35,7 @@ class WebsupLayer(YowInterfaceLayer):
     @ProtocolEntityCallback("message")
     def onMessage(self, messageProtocolEntity):
         logger.info(
-            "Message %s: %s %s - type %s", 
+            "Message %s: %s %s - type %s",
             messageProtocolEntity.getId(),
             messageProtocolEntity.getFrom(),
             messageProtocolEntity.getNotify(),

@@ -1,10 +1,11 @@
 from gevent.queue import Queue
 import json
+import time
 
 
 class QueueItem:
     def __init__(self, timestamp=None, text=None, sender=None, data=None):
-        self.timestamp = timestamp
+        self.timestamp = timestamp or int(time.time())
         self.text = text
         self.sender = sender
         self.data = data

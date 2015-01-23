@@ -53,26 +53,34 @@ class WebsupLayer(YowInterfaceLayer):
         if messageProtocolEntity.getType() == 'text':
             text = myemoji.escape(messageProtocolEntity.getBody())
         elif messageProtocolEntity.getType() == 'media':
+            url = None
+            thumb = messageProtocolEntity.getPreview()
             media_type = messageProtocolEntity.getMediaType()
             if media_type in ["image", "audio", "video"]:
                 text = myemoji.escape(messageProtocolEntity.getCaption())
-                thumb = messageProtocolEntity.getPreview()
-                if media_type == "image" and thumb:
-                    # encode as data-uri
-                    text = '<img src="data:%s;base64,%s" title="%s"/>' % (
-                        'image/jpeg',
-                        binascii.b2a_base64(thumb),
-                        myemoji.escapejs(messageProtocolEntity.getCaption())
-                    )
-                text = '<a href="%s" target="_blank">%s</a>' % (
-                    messageProtocolEntity.url,
-                    text,
-                )
+                url = messageProtocolEntity.url
             elif media_type == "location":
-                text = "Location: (%s,%s)" % (
-                    messageProtocolEntity.getLatitude(),
-                    messageProtocolEntity.getLongitude(),
+                text = myemoji.escape(messageProtocolEntity.getLocationName() or '')
+                if not text:
+                    text = "Location: (%s,%s)" % (
+                        messageProtocolEntity.getLatitude(),
+                        messageProtocolEntity.getLongitude(),
+                    )
+                url = messageProtocolEntity.url
+                if not url:
+                    url = 'http://www.osm.org/#map=16/%s/%s' % (
+                        messageProtocolEntity.getLatitude(),
+                        messageProtocolEntity.getLongitude(),
+                    )
+            if thumb:
+                # encode as data-uri
+                text = '<img src="data:%s;base64,%s"/><span>%s</span>' % (
+                    'image/jpeg',
+                    binascii.b2a_base64(thumb),
+                    text
                 )
+            if url:
+                text = '<a href="%s" target="_blank">%s</a>' % (url, text)
         if text:
             timestamp = messageProtocolEntity.getTimestamp()
             sender = messageProtocolEntity.getFrom(full=False)

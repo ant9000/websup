@@ -4,8 +4,7 @@ import os
 
 class Config(RawConfigParser):
 
-    DEFAULT_CFG = """
-[whatsapp]
+    DEFAULT_CFG = """[whatsapp]
 phone =
 password =
 

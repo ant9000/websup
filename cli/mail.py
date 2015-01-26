@@ -25,11 +25,11 @@ class Email:
             smtp.login(self.username, self.password)
         return smtp
 
-    def send(frm, dst, subj, msg):
-        email = MIMEText(msg)
-        email['Subject'] = subj
-        email['From'] = frm
-        email['To'] = dst
-        sess = self.connect()
-        sess.sendmail(frm, [dst], email.as_string())
-        sess.quit()
+    def send(self, frm, dst, subj, msg):
+        m = MIMEText(msg)
+        m['Subject'] = subj
+        m['From'] = frm
+        m['To'] = dst
+        s = self.connect()
+        s.sendmail(frm, [dst], m.as_string())
+        s.quit()

@@ -51,16 +51,18 @@ class WebsupLayer(YowInterfaceLayer):
 
         text = None
         if messageProtocolEntity.getType() == 'text':
-            text = myemoji.escape(messageProtocolEntity.getBody())
+            text = myemoji.escape(messageProtocolEntity.getBody() or '')
         elif messageProtocolEntity.getType() == 'media':
             url = None
             thumb = messageProtocolEntity.getPreview()
             media_type = messageProtocolEntity.getMediaType()
             if media_type in ["image", "audio", "video"]:
-                text = myemoji.escape(messageProtocolEntity.getCaption())
+                text = myemoji.escape(messageProtocolEntity.getCaption() or '')
                 url = messageProtocolEntity.url
             elif media_type == "location":
-                text = myemoji.escape(messageProtocolEntity.getLocationName() or '')
+                text = myemoji.escape(
+                    messageProtocolEntity.getLocationName() or ''
+                )
                 if not text:
                     text = "Location: (%s,%s)" % (
                         messageProtocolEntity.getLatitude(),

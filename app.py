@@ -5,34 +5,33 @@ import logging.config
 logging.config.fileConfig('logging.conf')
 
 import sys
-import json
 import gevent
 import bottle
 from bottle.ext.websocket import GeventWebSocketServer
 from bottle.ext.websocket import websocket
 from geventwebsocket import WebSocketError
+from cli.config import Config, NoSectionError, NoOptionError
 from cli import stack
 from cli.queue import Queue, QueueItem
 from cli import myemoji
 import os
 
+
+def here(path):
+    return os.path.abspath(os.path.join(os.path.dirname(__file__), path))
+
 try:
-    cfg = json.load(open('credentials.json', 'r'))
-    phone = cfg['phone']
-    password = cfg['password']
+    cfg = Config(here('configuration.ini'))
+    phone = cfg.get('whatsapp', 'phone')
+    password = cfg.get('whatsapp', 'password')
+    if not phone:
+        raise NoOptionError('phone', 'whatsapp')
+    if not password:
+        raise NoOptionError('password', 'whatsapp')
 except:
     print """
-ERROR: file "credentials.json" is missing or invalid.
-
-Check that it exists, it is readable and contains
-
-{
-  "phone": "<YOURPHONE>",
-  "password": "<YOURPASSWORD>"
-}
-
-(substitute YOURPHONE and YOURPASSWORD with the actual
-values).
+ERROR: check file "configuration.ini" and make sure the Whatsapp
+credentials are correct.
 
 Use the command
 
@@ -45,10 +44,6 @@ for getting further help.
 logger = logging.getLogger()
 queue = Queue()
 stack = stack.WebsupStack((phone, password))
-
-
-def here(path):
-    return os.path.abspath(os.path.join(os.path.dirname(__file__), path))
 
 
 @bottle.route('/')

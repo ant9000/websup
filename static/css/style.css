@@ -48,3 +48,5 @@ body {
 .bubble.odd { margin-left: 40px; }
 .bubble p { font-size: 70%; padding: 0; margin: 0; }
 .bubble .sender { font-weight: bold; }
+
+.error { color: #a00; }

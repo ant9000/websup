@@ -87,7 +87,7 @@ class WebsupLayer(YowInterfaceLayer):
             timestamp = messageProtocolEntity.getTimestamp()
             sender = messageProtocolEntity.getFrom(full=False)
             notify = myemoji.escape(messageProtocolEntity.getNotify())
-            if notify:
+            if notify and notify != sender:
                 sender = "%s - %s" % (sender, notify)
             text = myemoji.replace(text)
             sender = myemoji.replace(sender)

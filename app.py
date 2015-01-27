@@ -10,6 +10,7 @@ import bottle
 from bottle.ext.websocket import GeventWebSocketServer
 from bottle.ext.websocket import websocket
 from geventwebsocket import WebSocketError
+from beaker.middleware import SessionMiddleware
 from cli.config import Config, NoSectionError, NoOptionError
 from cli import stack
 from cli.queue import Queue, QueueItem
@@ -45,10 +46,60 @@ logger = logging.getLogger()
 queue = Queue()
 stack = stack.WebsupStack((phone, password))
 users = set()
+session_opts = {
+    'session.cookie_expires': True,
+    'session.auto': True,
+}
+app = SessionMiddleware(bottle.app(), session_opts)
+
+
+def check_login(username, password):
+    try:
+        if username != '' and \
+                username == cfg.get('webpage', 'username') and \
+                password == cfg.get('webpage', 'password'):
+            return True
+    except:
+        pass
+    return False
+
 
 @bottle.route('/')
+@bottle.view('index')
 def index():
-    return bottle.static_file('index.html', root=here('static'))
+    session = bottle.request.environ.get('beaker.session')
+    username = session.get('username', None)
+    if username is None:
+        bottle.redirect('/login')
+    return {
+        'username': username,
+    }
+
+
+@bottle.route('/login')
+@bottle.post('/login')
+@bottle.view('login')
+def login():
+    data = {
+        'error': None
+    }
+    if bottle.request.method == 'POST':
+        username = bottle.request.forms.get('username')
+        password = bottle.request.forms.get('password')
+        if check_login(username, password):
+            session = bottle.request.environ.get('beaker.session')
+            username = session['username'] = username
+            bottle.redirect('/')
+        else:
+            data['error'] = 'Wrong username or password.'
+    return data
+
+
+@bottle.route('/logout')
+def logout():
+    session = bottle.request.environ.get('beaker.session')
+    session.delete()
+    bottle.redirect('/')
 
 
 @bottle.route('/websocket', apply=[websocket])
@@ -84,6 +135,11 @@ def yowsup():
 
 try:
     gevent.spawn(yowsup)
-    bottle.run(host='127.0.0.1', port=8080, server=GeventWebSocketServer)
+    bottle.run(
+        app=app,
+        host='0.0.0.0',
+        port=8080,
+        server=GeventWebSocketServer,
+    )
 except KeyboardInterrupt:
     print "Exit."

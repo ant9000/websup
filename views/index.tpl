@@ -53,7 +53,12 @@
     </script>
 </head>
 <body>
-    <div id="connection"><h2>Websup!</h2></div>
+    <div id="connection">
+        <h2>Websup!</h2>
+
+        <p>Welcome, <b>{{ username }}</b>. Click to <span><a href="/logout">logout</a> </p>
+
+    </div>
 </body>
 <script>
 function pad(s) { return ((''+s).length<2?'0':'')+s; }
@@ -68,11 +73,15 @@ Handlebars.registerHelper('time', function(unix_timestamp) {
   return new Handlebars.SafeString(Y+'/'+M+'/'+D+' '+h+':'+m+':'+s);
 });
 </script>
+% # Handlebars.js uses the same syntax as STL for declaring variables,
+% # so we include the template in a safe string
+{{!"""
 <script id="bubble" class="template" type="text/x-handlebars-template">
 <div class="bubble{{#if odd}} odd{{/if}}">
-  <p>[<span class="time">{{time timestamp }}</span>] <span class="sender">{{{ sender }}}</span></p>
+  <p>[<span class="time">{{ time timestamp }}</span>] <span class="sender">{{{ sender }}}</span></p>
   <hr />
   {{{ text }}}
 </div>
 </script>
+"""}}
 </html>

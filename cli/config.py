@@ -9,11 +9,13 @@ phone =
 password =
 
 [webpage]
-email =
-password =
+username = admin
+password = admin
 
-[smtp]
-sender = Whatsapp Forwarder <root@localhost>
+[email]
+from = Whatsapp Forwarder <root@localhost>
+to = 
+subject = [Whatsapp]
 server = localhost
 port =
 use_ssl = False

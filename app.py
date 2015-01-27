@@ -16,6 +16,7 @@ from cli import stack
 from cli.queue import Queue, QueueItem
 from cli import myemoji
 import os
+import json
 
 
 def here(path):
@@ -45,7 +46,6 @@ for getting further help.
 logger = logging.getLogger()
 queue = Queue()
 stack = stack.WebsupStack((phone, password))
-users = set()
 session_opts = {
     'session.cookie_expires': True,
     'session.auto': True,
@@ -102,18 +102,25 @@ def logout():
     bottle.redirect('/')
 
 
+users = {}
 @bottle.route('/websocket', apply=[websocket])
 def echo(ws):
-    users.add(ws)
+    session = bottle.request.environ.get('beaker.session',{})
+    username = session.get('username', None)
+    users[ws] = '%s@%s' % (username or 'anonymous', bottle.request.remote_addr)
     while True:
         try:
             msg = ws.receive()
             if msg is not None:
-                logger.info(msg)
+                logger.info('%s %s', users[ws], msg)
+            if username is None:
+                msg = { 'type': 'session', 'content': 'reconnect' }
+                ws.send(json.dumps(msg))
             for item in queue:
-                for user in users:
-                    msg = item.toJson()
-                    user.send(msg)
+                msg = { 'type': 'whatsapp', 'content': item.asDict() }
+                for conn, username in users.items():
+                    if username is not None:
+                        conn.send(json.dumps(msg))
         except WebSocketError, e:
             logger.error(e)
             break

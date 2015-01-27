@@ -24,28 +24,36 @@
             });
             var ws, connecting=false;
             function connect(){
-              connecting = true;
-              ws = new WebSocket('ws://'+window.location.host+'/websocket');
-              ws.onopen = function(evt) {
-                  connecting = false;
-                  ws.send('connected');
-                  $('#connection').addClass('connected');
-              }
-              var counter=0;
-              ws.onmessage = function(evt) {
-                var message = JSON.parse(evt.data);
-                message.odd = counter++ % 2;
-                $('body').append(templates['bubble'](message));
-                $('body .bubble:last').get(0).scrollIntoView();
-              }
-              ws.onclose = function(evt) {
-                  $('#connection').removeClass('connected');
-                  connecting = false;
-                  ws = null;
-              }
+                connecting = true;
+                ws = new WebSocket('ws://'+window.location.host+'/websocket');
+                ws.onopen = function(evt) {
+                    connecting = false;
+                    ws.send('connected');
+                    $('#connection').addClass('connected');
+                }
+                var counter=0;
+                ws.onmessage = function(evt) {
+                    var data = JSON.parse(evt.data);
+                    if(data.type == 'whatsapp'){
+                        var message = data.content;
+                        message.odd = counter++ % 2;
+                        $('body').append(templates['bubble'](message));
+                        $('body .bubble:last').get(0).scrollIntoView();
+                    }else if(data.type=='session'){
+                        if(data.content=='reconnect'){
+                            // TODO
+                            alert('Session expired.');
+                        } 
+                    }
+                }
+                ws.onclose = function(evt) {
+                    $('#connection').removeClass('connected');
+                    connecting = false;
+                    ws = null;
+                }
             }
             function checkConnection(){
-              if((ws===null) && !connecting){ connect(); }
+                if((ws===null) && !connecting){ connect(); }
             }
             setInterval(checkConnection,1000); 
             connect();

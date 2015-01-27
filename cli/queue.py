@@ -1,5 +1,4 @@
 from gevent.queue import Queue
-import json
 import time
 
 
@@ -16,9 +15,9 @@ class QueueItem:
             out = '%s: %s' % (self.sender, out)
         return out
 
-    def toJson(self):
-        return json.dumps({
+    def asDict(self):
+        return {
             'timestamp': self.timestamp,
             'sender': self.sender,
             'text': self.text,
-        })
+        }

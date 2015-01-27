@@ -25,7 +25,7 @@
             var ws, connecting=false;
             function connect(){
               connecting = true;
-              ws = new WebSocket('ws://127.0.0.1:8080/websocket');
+              ws = new WebSocket('ws://'+window.location.host+'/websocket');
               ws.onopen = function(evt) {
                   connecting = false;
                   ws.send('connected');

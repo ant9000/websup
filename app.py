@@ -44,7 +44,7 @@ for getting further help.
 logger = logging.getLogger()
 queue = Queue()
 stack = stack.WebsupStack((phone, password))
-
+users = set()
 
 @bottle.route('/')
 def index():
@@ -53,14 +53,16 @@ def index():
 
 @bottle.route('/websocket', apply=[websocket])
 def echo(ws):
+    users.add(ws)
     while True:
         try:
             msg = ws.receive()
-            if msg is None:
-                break
-            logger.info(msg)
+            if msg is not None:
+                logger.info(msg)
             for item in queue:
-                ws.send(item.toJson())
+                for user in users:
+                    msg = item.toJson()
+                    user.send(msg)
         except WebSocketError, e:
             logger.error(e)
             break
@@ -80,16 +82,8 @@ def yowsup():
     stack.start(queue)
 
 
-def test_messages():
-    while True:
-        item = QueueItem(text='heartbeat', sender='Ant9000')
-        queue.put(item)
-        logger.info(item)
-        gevent.sleep(10)
-
 try:
     gevent.spawn(yowsup)
-#   gevent.spawn(test_messages)
     bottle.run(host='127.0.0.1', port=8080, server=GeventWebSocketServer)
 except KeyboardInterrupt:
     print "Exit."

@@ -107,19 +107,24 @@ users = {}
 def echo(ws):
     session = bottle.request.environ.get('beaker.session',{})
     username = session.get('username', None)
-    users[ws] = '%s@%s' % (username or 'anonymous', bottle.request.remote_addr)
+    if username is not None:
+        users[ws] = '%s@%s' % (username, bottle.request.remote_addr)
+    else:
+        username = 'anonymous@%s' % bottle.request.remote_addr
+
     while True:
         try:
             msg = ws.receive()
             if msg is not None:
-                logger.info('%s %s', users[ws], msg)
-            if username is None:
+                logger.info('%s %s', username, msg)
+            if username.startswith('anonymous@'):
                 msg = { 'type': 'session', 'content': 'reconnect' }
                 ws.send(json.dumps(msg))
             for item in queue:
                 msg = { 'type': 'whatsapp', 'content': item.asDict() }
-                for conn, username in users.items():
-                    if username is not None:
+                for conn, user in users.items():
+                    if user:
+                        logger.info('user "%s", msg "%s"', user, msg)
                         conn.send(json.dumps(msg))
         except WebSocketError, e:
             logger.error(e)

@@ -161,7 +161,7 @@ def echo(ws):
                 ws.send(json.dumps(msg))
         except WebSocketError, e:
             logger.error(e)
-            if web_clients.has_key(ws):
+            if ws in web_clients:
                 del web_clients[ws]
             break
 

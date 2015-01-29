@@ -51,6 +51,7 @@ session_opts = {
     'session.auto': True,
 }
 app = SessionMiddleware(bottle.app(), session_opts)
+web_clients = {}
 
 
 def check_login(username, password):
@@ -102,13 +103,12 @@ def logout():
     bottle.redirect('/')
 
 
-users = {}
 @bottle.route('/websocket', apply=[websocket])
 def echo(ws):
-    session = bottle.request.environ.get('beaker.session',{})
+    session = bottle.request.environ.get('beaker.session', {})
     username = session.get('username', None)
     if username is not None:
-        users[ws] = '%s@%s' % (username, bottle.request.remote_addr)
+        web_clients[ws] = '%s@%s' % (username, bottle.request.remote_addr)
     else:
         username = 'anonymous@%s' % bottle.request.remote_addr
 
@@ -118,16 +118,12 @@ def echo(ws):
             if msg is not None:
                 logger.info('%s %s', username, msg)
             if username.startswith('anonymous@'):
-                msg = { 'type': 'session', 'content': 'reconnect' }
+                msg = {'type': 'session', 'content': 'reconnect'}
                 ws.send(json.dumps(msg))
-            for item in queue:
-                msg = { 'type': 'whatsapp', 'content': item.asDict() }
-                for conn, user in users.items():
-                    if user:
-                        logger.info('user "%s", msg "%s"', user, msg)
-                        conn.send(json.dumps(msg))
         except WebSocketError, e:
             logger.error(e)
+            if web_clients.has_key(ws):
+                del web_clients[ws]
             break
 
 
@@ -145,7 +141,27 @@ def yowsup():
     stack.start(queue)
 
 
+def queue_consumer():
+    while True:
+        try:
+            item = queue.peek()
+            # TODO: send message via email
+            if web_clients:
+                # broadcast message to all connected clients
+                msg = {'type': 'whatsapp', 'content': item.asDict()}
+                for conn, user in web_clients.items():
+                    if user:
+                        logger.info('user "%s", msg "%s"', user, msg)
+                        conn.send(json.dumps(msg))
+                # work done, now we can consume message
+                queue.get()
+        except WebSocketError, e:
+            logger.error(e)
+            break
+
+
 try:
+    gevent.spawn(queue_consumer)
     gevent.spawn(yowsup)
     bottle.run(
         app=app,

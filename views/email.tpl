@@ -14,6 +14,6 @@ p { font-size: 70%; padding: 0; margin: 0; }
 <body>
 <p>[<span class="time">{{ item.datetime }}</span>] <span class="sender">{{ item.sender }}</span></p>
 <hr />
-{{ item.text }}
+{{! item.text }}
 </body>
 </html>

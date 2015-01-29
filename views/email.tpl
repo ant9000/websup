@@ -12,7 +12,7 @@ p { font-size: 70%; padding: 0; margin: 0; }
 </style>
 </head>
 <body>
-<p>[<span class="time">{{ item.timestamp }}</span>] <span class="sender">{{ item.sender }}</span></p>
+<p>[<span class="time">{{ item.datetime }}</span>] <span class="sender">{{ item.sender }}</span></p>
 <hr />
 {{ item.text }}
 </body>

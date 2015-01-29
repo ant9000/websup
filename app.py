@@ -11,11 +11,11 @@ from bottle.ext.websocket import GeventWebSocketServer
 from bottle.ext.websocket import websocket
 from geventwebsocket import WebSocketError
 from beaker.middleware import SessionMiddleware
-from cork.cork import Mailer
 from cli.config import Config, NoSectionError, NoOptionError
 from cli import stack
 from cli.queue import Queue, QueueItem
 from cli import myemoji
+from cli import Mailer
 import os
 import json
 

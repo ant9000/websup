@@ -78,7 +78,7 @@ class WebsupLayer(YowInterfaceLayer):
                 # encode as data-uri
                 text = '<img src="data:%s;base64,%s"/><span>%s</span>' % (
                     'image/jpeg',
-                    binascii.b2a_base64(thumb),
+                    binascii.b2a_base64(thumb).strip(),
                     text
                 )
             if url:

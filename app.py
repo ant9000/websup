@@ -11,6 +11,7 @@ from bottle.ext.websocket import GeventWebSocketServer
 from bottle.ext.websocket import websocket
 from geventwebsocket import WebSocketError
 from beaker.middleware import SessionMiddleware
+from cork.cork import Mailer
 from cli.config import Config, NoSectionError, NoOptionError
 from cli import stack
 from cli.queue import Queue, QueueItem
@@ -22,17 +23,18 @@ import json
 def here(path):
     return os.path.abspath(os.path.join(os.path.dirname(__file__), path))
 
+cfg = Config(here('configuration.ini'))
 try:
-    cfg = Config(here('configuration.ini'))
     phone = cfg.get('whatsapp', 'phone')
     password = cfg.get('whatsapp', 'password')
     if not phone:
         raise NoOptionError('phone', 'whatsapp')
     if not password:
         raise NoOptionError('password', 'whatsapp')
-except:
+except Exception, e:
     print """
-ERROR: check file "configuration.ini" and make sure the Whatsapp
+ERROR: %s
+Check file "configuration.ini" and make sure the Whatsapp
 credentials are correct.
 
 Use the command
@@ -40,8 +42,45 @@ Use the command
   yowsup-cli registration help
 
 for getting further help.
-  """
+    """ % e
     sys.exit(1)
+
+try:
+    admin_username = cfg.get('webpage', 'username')
+    admin_password = cfg.get('webpage', 'password')
+    if not admin_username:
+        raise NoOptionError('username', 'webpage')
+    if not admin_password:
+        raise NoOptionError('password', 'webpage')
+    if admin_password == "admin":
+        print "WARNING: please change the default web page credentials."
+except Exception, e:
+    print """
+ERROR: %s
+Check file "configuration.ini" and make sure the webpage
+configuration is correct.
+    """ % e
+    sys.exit(2)
+
+try:
+    email_from = cfg.get('email', 'from')
+    email_to = cfg.get('email', 'to')
+    email_server = cfg.get('email', 'server')
+    if not email_from:
+        raise NoOptionError('from', 'email')
+    if not email_to:
+        raise NoOptionError('to', 'email')
+    if not email_server:
+        raise NoOptionError('server', 'email')
+    mailer = Mailer(email_from, email_server)
+except Exception, e:
+    print """
+ERROR: %s
+Check file "configuration.ini" and make sure the email
+configuration is correct.
+    """ % e
+    sys.exit(3)
+
 
 logger = logging.getLogger()
 queue = Queue()
@@ -57,8 +96,8 @@ web_clients = {}
 def check_login(username, password):
     try:
         if username != '' and \
-                username == cfg.get('webpage', 'username') and \
-                password == cfg.get('webpage', 'password'):
+                username == admin_username and \
+                password == admin_password:
             return True
     except:
         pass
@@ -144,7 +183,7 @@ def yowsup():
 def queue_consumer():
     while True:
         try:
-            item = queue.peek()
+            item = queue.peek(block=False)
             # TODO: send message via email
             if web_clients:
                 # broadcast message to all connected clients
@@ -155,9 +194,12 @@ def queue_consumer():
                         conn.send(json.dumps(msg))
                 # work done, now we can consume message
                 queue.get()
+        except gevent.queue.Empty:
+            pass
         except WebSocketError, e:
             logger.error(e)
             break
+        gevent.sleep(0.5)
 
 
 try:

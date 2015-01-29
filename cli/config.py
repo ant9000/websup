@@ -13,14 +13,11 @@ username = admin
 password = admin
 
 [email]
-from = Whatsapp Forwarder <root@localhost>
-to = 
-subject = [Whatsapp]
-server = localhost
-port =
-use_ssl = False
-username =
-password =
+from =
+to =
+; recognized format:
+; (smtp|starttls|ssl)://[username:password@]<hostname or ip>[:port]
+server =
 """
 
     def __init__(self, filename):

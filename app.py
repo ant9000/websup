@@ -185,8 +185,10 @@ def queue_consumer():
         try:
             item = queue.peek(block=False)
             # send message via email
-            msg = bottle.template('email',item=item)
-            mailer.send_email(email_to,'[Whatsapp] new message from %s' % item.sender,msg)
+            subj = '[Whatsapp] new message from %s' % item.sender
+            subj = unicode(subj).encode('utf-8')
+            msg = bottle.template('email',item=item).encode('utf-8')
+            mailer.send_email(email_to,subj,msg)
             # broadcast message to all connected clients
             if web_clients:
                 msg = {'type': 'whatsapp', 'content': item.asDict()}

@@ -184,16 +184,18 @@ def queue_consumer():
     while True:
         try:
             item = queue.peek(block=False)
-            # TODO: send message via email
+            # send message via email
+            msg = bottle.template('email',item=item)
+            mailer.send_email(email_to,'[Whatsapp] new message from %s' % item.sender,msg)
+            # broadcast message to all connected clients
             if web_clients:
-                # broadcast message to all connected clients
                 msg = {'type': 'whatsapp', 'content': item.asDict()}
                 for conn, user in web_clients.items():
                     if user:
                         logger.info('user "%s", msg "%s"', user, msg)
                         conn.send(json.dumps(msg))
-                # work done, now we can consume message
-                queue.get()
+            # work done, now we can consume message
+            queue.get()
         except gevent.queue.Empty:
             pass
         except WebSocketError, e:

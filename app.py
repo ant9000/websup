@@ -15,7 +15,7 @@ from cli.config import Config, NoSectionError, NoOptionError
 from cli import stack
 from cli.queue import Queue, QueueItem
 from cli import myemoji
-from cli import Mailer
+from cli.mail import Mailer
 import os
 import json
 

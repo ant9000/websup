@@ -10,7 +10,6 @@ body {
 #connection.connected { background-image: url(/static/img/bullet-blue-icon.png); }
 #connection.logged-in { background-image: url(/static/img/bullet-green-icon.png); }
 #connection.error     { background-image: url(/static/img/bullet-red-icon.png); }
-.emoji { width: 18px; height: 18px; }
 
 /* http://html-generator.weebly.com/css-speech-bubble-generator.html */
 .bubble {

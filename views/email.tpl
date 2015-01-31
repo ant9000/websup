@@ -6,7 +6,6 @@ body {
   color:#333;
   background:#fff;
 }
-.emoji { width: 18px; height: 18px; }
 p { font-size: 70%; padding: 0; margin: 0; }
 .sender { font-weight: bold; }
 </style>

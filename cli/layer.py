@@ -93,7 +93,7 @@ class WebsupLayer(YowInterfaceLayer):
             sender = myemoji.replace(sender)
             item = QueueItem(timestamp, text, sender, messageProtocolEntity)
             self.queue.put(item)
-            logger.debug(item)
+#           logger.debug(item)
 
     @ProtocolEntityCallback("receipt")
     def onReceipt(self, entity):

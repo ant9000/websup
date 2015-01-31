@@ -56,12 +56,15 @@ class WebsupLayer(YowInterfaceLayer):
             url = None
             thumb = messageProtocolEntity.getPreview()
             media_type = messageProtocolEntity.getMediaType()
-            if media_type == "image":
+            if media_type in ["image", "video"]:
                 text = myemoji.escape(messageProtocolEntity.getCaption() or '')
                 url = messageProtocolEntity.url
-            elif media_type in ["audio", "video"]:
-                text = 'multimedia message [%s]' % \
-                    messageProtocolEntity.getMimeType()
+            elif media_type == "audio":
+                if thumb:
+                    text = ''
+                else:
+                    text = 'audio message [%s]' % \
+                        messageProtocolEntity.getMimeType()
                 url = messageProtocolEntity.url
             elif media_type == "location":
                 text = myemoji.escape(

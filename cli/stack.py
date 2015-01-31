@@ -14,17 +14,23 @@ import sys
 import gevent
 
 
-# patch to support audio / video messages as downloadable media
+# patch to support audio / video messages
 from yowsup.layers.protocol_media import YowMediaProtocolLayer
 from yowsup.layers.protocol_media.protocolentities \
     import DownloadableMediaMessageProtocolEntity as DownloadableMediaEntity
+from yowsup.layers.protocol_media.protocolentities \
+    import ImageDownloadableMediaMessageProtocolEntity as ImageMediaEntity
 
 
 class MyYowMediaProtocolLayer(YowMediaProtocolLayer):
     def recvMessageStanza(self, node):
         if node.getAttributeValue("type") == "media":
             mediaNode = node.getChild("media")
-            if mediaNode.getAttributeValue("type") in ["audio", "video"]:
+            if mediaNode.getAttributeValue("type") == "video":
+                entity = ImageMediaEntity.fromProtocolTreeNode(node)
+                self.toUpper(entity)
+            elif mediaNode.getAttributeValue("type") == "audio":
+                # TODO: caption support for audio
                 entity = DownloadableMediaEntity.fromProtocolTreeNode(node)
                 self.toUpper(entity)
             else:

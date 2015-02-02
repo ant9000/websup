@@ -204,7 +204,6 @@ def queue_consumer():
             pass
         except WebSocketError, e:
             logger.error(e)
-            break
         gevent.sleep(0.5)
 
 

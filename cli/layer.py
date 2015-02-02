@@ -61,7 +61,7 @@ class WebsupLayer(YowInterfaceLayer):
             if media_type in ["image", "video"]:
                 text = myemoji.escape(messageProtocolEntity.getCaption() or '')
             elif media_type == "audio":
-                text = '' # audio has no caption
+                text = ''  # audio has no caption
             elif media_type == "location":
                 text = myemoji.escape(
                     messageProtocolEntity.getLocationName() or ''

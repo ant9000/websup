@@ -88,7 +88,11 @@ Handlebars.registerHelper('time', function(unix_timestamp) {
 <div class="bubble{{#if odd}} odd{{/if}}">
   <p>[<span class="time">{{ time timestamp }}</span>] <span class="sender">{{{ sender }}}</span></p>
   <hr />
-  {{{ text }}}
+  {{#if url}}<a href="{{{ url }}}" target="_blank">{{/if}}
+    {{{ thumb }}} 
+    {{{ text }}}
+  {{#if url}}</a>{{/if}}
+  <div style="clear:both;"></div>
 </div>
 </script>
 """}}

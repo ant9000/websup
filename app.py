@@ -194,7 +194,7 @@ def queue_consumer():
                 msg = {'type': 'whatsapp', 'content': item.asDict()}
                 for conn, user in web_clients.items():
                     if user:
-                        logger.info('user "%s", msg "%s"', user, msg)
+                        logger.info('user "%s", msg from "%s" ', user, item.sender)
                         conn.send(json.dumps(msg))
             # work done, now we can consume message
             queue.get()

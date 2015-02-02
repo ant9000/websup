@@ -50,22 +50,22 @@ class WebsupLayer(YowInterfaceLayer):
         self.toLower(receipt)
 
         text = None
+        url = None
+        thumb = None
         if messageProtocolEntity.getType() == 'text':
             text = myemoji.escape(messageProtocolEntity.getBody() or '')
         elif messageProtocolEntity.getType() == 'media':
-            url = None
+            url = messageProtocolEntity.url
             thumb = messageProtocolEntity.getPreview()
             media_type = messageProtocolEntity.getMediaType()
             if media_type in ["image", "video"]:
                 text = myemoji.escape(messageProtocolEntity.getCaption() or '')
-                url = messageProtocolEntity.url
             elif media_type == "audio":
                 if thumb:
                     text = ''
                 else:
                     text = 'audio message [%s]' % \
                         messageProtocolEntity.getMimeType()
-                url = messageProtocolEntity.url
             elif media_type == "location":
                 text = myemoji.escape(
                     messageProtocolEntity.getLocationName() or ''
@@ -75,7 +75,6 @@ class WebsupLayer(YowInterfaceLayer):
                         messageProtocolEntity.getLatitude(),
                         messageProtocolEntity.getLongitude(),
                     )
-                url = messageProtocolEntity.url
                 if not url:
                     url = 'http://www.osm.org/#map=16/%s/%s' % (
                         messageProtocolEntity.getLatitude(),
@@ -83,14 +82,12 @@ class WebsupLayer(YowInterfaceLayer):
                     )
             if thumb:
                 # encode as data-uri
-                text = '<img src="data:%s;base64,%s"/><span>%s</span>' % (
+                thumb = '<img src="data:%s;base64,%s"/>' % (
                     'image/jpeg',
                     binascii.b2a_base64(thumb).strip(),
-                    text
                 )
-            if url:
-                text = '<a href="%s" target="_blank">%s</a>' % (url, text)
-        if text:
+
+        if text or url:
             timestamp = messageProtocolEntity.getTimestamp()
             sender = messageProtocolEntity.getFrom(full=False)
             notify = myemoji.escape(messageProtocolEntity.getNotify())
@@ -98,7 +95,10 @@ class WebsupLayer(YowInterfaceLayer):
                 sender = "%s - %s" % (sender, notify)
             text = myemoji.replace(text)
             sender = myemoji.replace(sender)
-            item = QueueItem(timestamp, text, sender, messageProtocolEntity)
+            item = QueueItem(
+                timestamp=timestamp, text=text, sender=sender, url=url,
+                thumb=thumb, data=messageProtocolEntity,
+            )
             self.queue.put(item)
 #           logger.debug(item)
 

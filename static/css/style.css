@@ -47,5 +47,7 @@ body {
 .bubble.odd { margin-left: 40px; }
 .bubble p { font-size: 70%; padding: 0; margin: 0; }
 .bubble .sender { font-weight: bold; }
+.bubble img { float: left; margin: 0px 15px; }
+.bubble a { text-decoration: none; }
 
 .error { color: #a00; }

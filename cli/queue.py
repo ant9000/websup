@@ -4,10 +4,15 @@ import time
 
 
 class QueueItem:
-    def __init__(self, timestamp=None, text=None, sender=None, data=None):
+    def __init__(
+        self, timestamp=None, text=None, url=None,
+        thumb=None, sender=None, data=None,
+    ):
         self.timestamp = timestamp or int(time.time())
         self.datetime = datetime.fromtimestamp(self.timestamp)
         self.text = text
+        self.url = url
+        self.thumb = thumb
         self.sender = sender
         self.data = data
 
@@ -22,4 +27,6 @@ class QueueItem:
             'timestamp': self.timestamp,
             'sender': self.sender,
             'text': self.text,
+            'url': self.url,
+            'thumb': self.thumb,
         }

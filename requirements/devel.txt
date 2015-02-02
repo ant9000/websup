@@ -1,0 +1,4 @@
+ipython
+pep8
+-r base.txt
+git+https://github.com/douglasfsti/yowsup.git@master

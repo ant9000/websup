@@ -51,3 +51,7 @@ body {
 .bubble a { text-decoration: none; }
 
 .error { color: #a00; }
+
+.list-group {
+  box-shadow: none;
+}

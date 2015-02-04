@@ -6,7 +6,7 @@ import time
 class QueueItem:
     def __init__(
         self, timestamp=None, text=None, url=None,
-        thumb=None, sender=None, data=None,
+        thumb=None, sender=None, notify=None, data=None,
     ):
         self.timestamp = timestamp or int(time.time())
         self.datetime = datetime.fromtimestamp(self.timestamp)
@@ -14,6 +14,7 @@ class QueueItem:
         self.url = url
         self.thumb = thumb
         self.sender = sender
+        self.notify = notify
         self.data = data
 
     def __str__(self):
@@ -26,6 +27,7 @@ class QueueItem:
         return {
             'timestamp': self.timestamp,
             'sender': self.sender,
+            'notify': self.notify,
             'text': self.text,
             'url': self.url,
             'thumb': self.thumb,

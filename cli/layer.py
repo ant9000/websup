@@ -92,13 +92,13 @@ class WebsupLayer(YowInterfaceLayer):
             timestamp = messageProtocolEntity.getTimestamp()
             sender = messageProtocolEntity.getFrom(full=False)
             notify = myemoji.escape(messageProtocolEntity.getNotify())
-            if notify and notify != sender:
-                sender = "%s - %s" % (sender, notify)
+            if notify == sender:
+                notify = ''
             text = myemoji.replace(text)
             sender = myemoji.replace(sender)
             item = QueueItem(
                 timestamp=timestamp, text=text, sender=sender, url=url,
-                thumb=thumb, data=messageProtocolEntity,
+                thumb=thumb, notify=notify, data=messageProtocolEntity,
             )
             self.queue.put(item)
 #           logger.debug(item)

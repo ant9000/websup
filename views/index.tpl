@@ -1,4 +1,5 @@
 <!doctype html>
+<html lang="en">
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -11,20 +12,34 @@
     <link rel="stylesheet" href="/static/css/style.css">
 </head>
 <body>
-    <div id="connection">
-        <h2>Websup!</h2>
-        <p>
-            Welcome, <b>{{ username or 'anonymous' }}</b>.
-% if username:
-            Click to <span><a href="/logout">logout</a>.
-% end
-        </p>
-    </div>
-
     <div class="container">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <div class="panel-title" id="connection">
+                    <h3>Websup!</h3>
+                </div>
+            </div>
+            <div class="panel-body">
+                Welcome, <b>{{ username or 'anonymous' }}</b>.
+            </div>
+% if username:
+            <div class="panel-footer">
+                    Click to <span><a href="/logout">logout</a>.
+            </div>
+% end
+        </div>
+
         <div class="row">
-            <div id="users-list" class="col-md-4 list-group"></div>
-            <div id="messages-container" class="col-md-8"></div>
+            <p></p>
+        </div>
+
+        <div class="row">
+            <div class="col-md-4">
+                <div id="users-list" class="list-group"></div>
+            </div>
+            <div class="col-md-4">
+                <div id="messages-container"></div>
+            </div>
         </div>
     </div>
 <script src="/static/js/jquery-1.11.2.min.js"></script>

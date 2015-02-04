@@ -1,12 +1,9 @@
 body {
-  padding: 0 10px;
-  margin:0;
+  padding: 10px 0px;
   font:1em/1.4 Cambria, Georgia, sans-serif;
-  color:#333;
-  background:#fff;
 }
 
-#connection { background: url(/static/img/bullet-black-icon.png) no-repeat; padding-left: 36px; }
+#connection { background: url(/static/img/bullet-black-icon.png) no-repeat; padding-left: 36px; min-height: 32px; }
 #connection.connected { background-image: url(/static/img/bullet-blue-icon.png); }
 #connection.logged-in { background-image: url(/static/img/bullet-green-icon.png); }
 #connection.error     { background-image: url(/static/img/bullet-red-icon.png); }
@@ -49,8 +46,6 @@ body {
 .bubble .sender { font-weight: bold; }
 .bubble img { float: left; margin: 0px 15px; }
 .bubble a { text-decoration: none; }
-
-.error { color: #a00; }
 
 .list-group {
   box-shadow: none;

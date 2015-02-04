@@ -109,7 +109,7 @@ def check_login(username, password):
 def index():
     session = bottle.request.environ.get('beaker.session')
     username = session.get('username', None)
-    if username is None:
+    if username is None and bottle.request.remote_addr != '127.0.0.1':
         bottle.redirect('/login')
     return {
         'username': username,
@@ -145,18 +145,21 @@ def logout():
 @bottle.route('/websocket', apply=[websocket])
 def echo(ws):
     session = bottle.request.environ.get('beaker.session', {})
-    username = session.get('username', None)
-    if username is not None:
-        web_clients[ws] = '%s@%s' % (username, bottle.request.remote_addr)
-    else:
-        username = 'anonymous@%s' % bottle.request.remote_addr
+    username = '%s@%s' % (
+        session.get('username', 'anonymous'),
+        bottle.request.remote_addr
+    )
+    if not username.startswith('anonymous@') or \
+            bottle.request.remote_addr == '127.0.0.1':
+        web_clients[ws] = username
 
     while True:
         try:
             msg = ws.receive()
             if msg is not None:
                 logger.info('%s %s', username, msg)
-            if username.startswith('anonymous@'):
+            if username.startswith('anonymous@') and \
+                    bottle.request.remote_addr != '127.0.0.1':
                 msg = {'type': 'session', 'content': 'reconnect'}
                 ws.send(json.dumps(msg))
         except WebSocketError, e:

@@ -37,7 +37,7 @@
                 <div class="form-group row">
                     <label for="username" class="col-md-2">Username:</label>
                     <div class="col-xs-4">
-                        <input type="text" name="username" id="username" class="form-control" />
+                        <input type="text" name="username" id="username" class="form-control" autofocus />
                     </div>
                 </div>
                 <div class="form-group row">

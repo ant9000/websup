@@ -2,6 +2,8 @@ body {
   padding: 10px 0px;
   font:1em/1.4 Cambria, Georgia, sans-serif;
 }
+.navbar { height: 90px; }
+body > .container { padding-bottom: 90px; }
 
 #connection { background: url(/static/img/bullet-black-icon.png) no-repeat; padding-left: 36px; min-height: 32px; }
 #connection.connected { background-image: url(/static/img/bullet-blue-icon.png); }

@@ -209,9 +209,10 @@ def queue_consumer():
         try:
             item = queue.peek(block=False)
             # send message via email
-            subj = '[Whatsapp] new message from %s' % item.number
-            if item.own:
-                subj = '[Whatsapp] new message to %s' % item.number
+            direction = item.own and "to" or "from"
+            subj = '[Whatsapp] new message %s %s' % (
+                item.number, direction
+            )
             subj = unicode(subj).encode('utf-8')
             msg = bottle.template('email', item=item).encode('utf-8')
             mailer.send_email(email_to, subj, msg)
@@ -224,7 +225,7 @@ def queue_consumer():
                 for conn, user in web_clients.items():
                     if user:
                         logger.info(
-                            'user "%s", msg from "%s" ', user, item.number
+                            'user "%s", msg %s "%s" ', user, direction, item.number
                         )
                         conn.send(json.dumps(msg))
             # work done, now we can consume message

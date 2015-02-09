@@ -212,7 +212,6 @@ def queue_consumer():
             subj = '[Whatsapp] new message from %s' % item.number
             if item.own:
                 subj = '[Whatsapp] new message to %s' % item.number
-                stack.send(item.number, item.text)
             subj = unicode(subj).encode('utf-8')
             msg = bottle.template('email', item=item).encode('utf-8')
             mailer.send_email(email_to, subj, msg)

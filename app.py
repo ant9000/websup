@@ -211,7 +211,7 @@ def queue_consumer():
             # send message via email
             direction = item.own and "to" or "from"
             subj = '[Whatsapp] new message %s %s' % (
-                item.number, direction
+                direction, item.number
             )
             subj = unicode(subj).encode('utf-8')
             msg = bottle.template('email', item=item).encode('utf-8')

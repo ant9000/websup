@@ -173,7 +173,14 @@ def echo(ws):
                     if data['type'] == 'session':
                         pass
                     elif data['type'] == 'message':
-                        stack.send(data['number'], data['content'])
+                        item = QueueItem(
+                            text=data['content'],
+                            number=data['number'],
+                            url='',
+                            thumb='',
+                            own=True,
+                        )
+                        queue.put(item)
                 except KeyError:
                     logger.error('message format is not valid')
         except WebSocketError, e:
@@ -202,17 +209,23 @@ def queue_consumer():
         try:
             item = queue.peek(block=False)
             # send message via email
-            subj = '[Whatsapp] new message from %s' % item.sender
+            subj = '[Whatsapp] new message from %s' % item.number
+            if item.own:
+                subj = '[Whatsapp] new message to %s' % item.number
+                stack.send(item.number, item.text)
             subj = unicode(subj).encode('utf-8')
             msg = bottle.template('email', item=item).encode('utf-8')
             mailer.send_email(email_to, subj, msg)
+            # if received via web, push it to Whatsapp
+            if item.own:
+                stack.send(item.number, item.text)
             # broadcast message to all connected clients
             if web_clients:
                 msg = {'type': 'whatsapp', 'content': item.asDict()}
                 for conn, user in web_clients.items():
                     if user:
                         logger.info(
-                            'user "%s", msg from "%s" ', user, item.sender
+                            'user "%s", msg from "%s" ', user, item.number
                         )
                         conn.send(json.dumps(msg))
             # work done, now we can consume message

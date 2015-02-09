@@ -8,7 +8,7 @@ body {
   background:#fff;
 }
 p { font-size: 70%; padding: 0; margin: 0; }
-.sender { font-weight: bold; }
+.number { font-weight: bold; }
 img { float: left; margin: 0px 15px; }
 a { text-decoration: none; }
 </style>
@@ -16,8 +16,8 @@ a { text-decoration: none; }
 <body>
 <p>
   [<span class="time">{{ item.datetime }}</span>]
-  <span class="sender">
-    {{! item.sender }}
+  <span class="number">
+    {{! item.number }}
 % if item.notify:
     - {{! item.notify }}
 % end

@@ -43,19 +43,20 @@
         </div>
 
     </div>
+
     <nav class="navbar navbar-fixed-bottom">
         <div class="container">
             <div class="panel panel-primary">
                 <div class="panel-body">
                     <div class="row">
-                        <form class="form-inline" id="msg-form">
-                            <div class="form-group col-xs-2">
+                        <form id="msg-form">
+                            <div class="col-lg-2">
                                 <input type="text" class="form-control" placeholder="number" id="number" name="number" />
                             </div>
-                            <div class="form-group col-xs-9">
-                                 <input type="text" class="form-control" style="width: 100%;" placeholder="content" id="content" name="content" />
+                            <div class="col-lg-9">
+                                <input type="text" class="form-control" placeholder="content" id="content" name="content" />
                             </div>
-                            <div class="form-group col-xs-1">
+                            <div class="col-lg-1">
                                 <button type="submit" class="btn btn-default pull-right"> Send </button>
                             </div>
                         </form>
@@ -64,6 +65,7 @@
             </div>
         </div>
     </nav>
+
 <script src="/static/js/jquery-1.11.2.min.js"></script>
 <script src="/static/js/handlebars-v2.0.0.js"></script>
 <script src="/static/js/bootstrap.min.js"></script>
@@ -84,6 +86,23 @@
             templates[this.id] = template;
         });
         var ws, connecting=false;
+        function showMessage(message,own){
+            $('#users-list .user').removeClass('active');
+            $('#user-'+message.sender).remove();
+            $('#users-list').prepend(templates['user'](message));
+            var messages = $('#messages-'+message.sender);
+            if(!messages.length){
+                messages = $('<div>');
+                messages.attr('id','messages-'+message.sender);
+                messages.addClass('messages');
+                $('#messages-container').append(messages);
+            }
+            $('#messages-container .messages').hide();
+            messages.show();
+            message.odd = own ? 1 : 0;
+            messages.append(templates['bubble'](message));
+            $('.bubble:last',messages).get(0).scrollIntoView();
+        }
         function connect(){
             connecting = true;
             ws = new WebSocket('ws://'+window.location.host+'/websocket');
@@ -95,22 +114,7 @@
             ws.onmessage = function(evt) {
                 var data = JSON.parse(evt.data);
                 if(data.type == 'whatsapp'){
-                    var message = data.content;
-                    $('#users-list .user').removeClass('active');
-                    $('#user-'+message.sender).remove();
-                    $('#users-list').prepend(templates['user'](message));
-                    var messages = $('#messages-'+message.sender);
-                    if(!messages.length){
-                        messages = $('<div>');
-                        messages.attr('id','messages-'+message.sender);
-                        messages.addClass('messages');
-                        $('#messages-container').append(messages);
-                    }
-                    $('#messages-container .messages').hide();
-                    messages.show();
-                    message.odd = $('.bubble',messages).length % 2;
-                    messages.append(templates['bubble'](message));
-                    $('.bubble:last',messages).get(0).scrollIntoView();
+                    showMessage(data.content);
                 }else if(data.type=='session'){
                     if(data.content=='reconnect'){
                         // TODO
@@ -137,20 +141,21 @@
             $('#messages-'+sender).show();
             $('#number').val(sender);
         });
-        $('#msg-form').on('submit',function(){
+        $('#msg-form').on('submit',function(e){
+            e.preventDefault();
             var number = $('#number').val(), content = $('#content').val();
             if($.isNumeric(number) && !$.isEmptyObject(content)){
                 ws.send(JSON.stringify({ type: 'message', number: number, content: content }));
                 $('#content').val('');
+                showMessage({ sender: number, text: content }, true);
             }
-            return false;
         });
     });
 </script>
 <script>
 function pad(s) { return ((''+s).length<2?'0':'')+s; }
 Handlebars.registerHelper('time', function(unix_timestamp) {
-  var dt = new Date(unix_timestamp * 1000);
+  var dt = unix_timestamp ? new Date(unix_timestamp * 1000) : new Date();
   var Y = dt.getFullYear();
   var M = pad(dt.getMonth()+1);
   var D = pad(dt.getDate());

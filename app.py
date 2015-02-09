@@ -173,7 +173,7 @@ def echo(ws):
                     if data['type'] == 'session':
                         pass
                     elif data['type'] == 'message':
-                        stack.send(data['number'],data['content'])
+                        stack.send(data['number'], data['content'])
                 except KeyError:
                     logger.error('message format is not valid')
         except WebSocketError, e:

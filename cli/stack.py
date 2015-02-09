@@ -90,4 +90,3 @@ class WebsupStack(object):
                 WebsupLayer.EVENT_SEND, number=number, content=content
             )
         )
-

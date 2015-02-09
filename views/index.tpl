@@ -54,7 +54,14 @@
                                 <input type="text" class="form-control" placeholder="number" id="number" name="number" />
                             </div>
                             <div class="col-lg-9">
-                                <input type="text" class="form-control" placeholder="content" id="content" name="content" />
+                                <div class="input-group">
+                                    <input type="text" class="form-control" placeholder="content" id="content" name="content" />
+                                    <span class="input-group-btn">
+                                        <button class="btn btn-default" type="button"><img src="/static/emoji/img/smile.png" class="emoji"
+                                            data-toggle="modal" data-target="#emoji"
+                                        /></button>
+                                    </span>
+                                </div>
                             </div>
                             <div class="col-lg-1">
                                 <button type="submit" class="btn btn-default pull-right"> Send </button>
@@ -65,6 +72,17 @@
             </div>
         </div>
     </nav>
+
+    <div id="emoji" class="modal" tabindex="-1" role="dialog">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-body">
+                    TODO: select emoji from list
+                </div>
+            </div>
+        </div>
+    </div>
+
 
 <script src="/static/js/jquery-1.11.2.min.js"></script>
 <script src="/static/js/handlebars-v2.0.0.js"></script>

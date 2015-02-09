@@ -118,6 +118,6 @@ class WebsupLayer(YowInterfaceLayer):
     def message_send(self, number, content):
         logger.info('Sending message to %s: %s' % (number, content))
         outgoingMessage = TextMessageProtocolEntity(
-            content, to="%s@s.whatsapp.net" % number
+            content.encode('utf-8'), to="%s@s.whatsapp.net" % number
         )
         self.toLower(outgoingMessage)

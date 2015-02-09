@@ -99,7 +99,8 @@
             }
             $('#messages-container .messages').hide();
             messages.show();
-            message.odd = own ? 1 : 0;
+            message.odd = $('.bubble',messages).length % 2;
+            message.own = own ? 1 : 0;
             messages.append(templates['bubble'](message));
             $('.bubble:last',messages).get(0).scrollIntoView();
         }
@@ -170,7 +171,7 @@ Handlebars.registerHelper('time', function(unix_timestamp) {
 % # so we include the template in a safe string
 {{!"""
 <script id="bubble" class="template" type="text/x-handlebars-template">
-<div class="bubble{{#if odd}} odd{{/if}}">
+<div class="bubble{{#if odd}} odd{{/if}}{{#if own}} own{{/if}}">
   {{#if url}}<a href="{{{ url }}}" target="_blank">{{/if}}
     {{{ thumb }}} 
     {{{ text }}}

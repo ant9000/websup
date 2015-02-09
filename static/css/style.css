@@ -42,7 +42,8 @@ body {
 }
 
 .bubble.odd { margin-left: 40px; }
-.bubble.odd:after {
+
+.bubble.own:after {
     left: auto;
     right: -15px;
     border-width: 10px 0 10px 15px;

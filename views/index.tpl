@@ -86,7 +86,7 @@
             templates[this.id] = template;
         });
         var ws, connecting=false;
-        function showMessage(message,own){
+        function showMessage(message){
             $('#users-list .user').removeClass('active');
             $('#user-'+message.number).remove();
             $('#users-list').prepend(templates['user'](message));
@@ -100,7 +100,6 @@
             $('#messages-container .messages').hide();
             messages.show();
             message.odd = $('.bubble',messages).length % 2;
-            message.own = own ? 1 : 0;
             messages.append(templates['bubble'](message));
             $('.bubble:last',messages).get(0).scrollIntoView();
         }

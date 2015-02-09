@@ -83,3 +83,11 @@ class WebsupStack(object):
         except KeyboardInterrupt, e:
             print "Exit."
             sys.exit(0)
+
+    def send(self, number, content):
+        self.stack.broadcastEvent(
+            YowLayerEvent(
+                WebsupLayer.EVENT_SEND, number=number, content=content
+            )
+        )
+

@@ -20,16 +20,23 @@ logger = logging.getLogger(__name__)
 
 class WebsupLayer(YowInterfaceLayer):
     EVENT_START = "org.openwhatsapp.yowsup.event.cli.start"
+    EVENT_SEND = "org.openwhatsapp.yowsup.event.cli.send"
 
     def __init__(self):
         YowInterfaceLayer.__init__(self)
         self.queue = None
 
     def onEvent(self, layerEvent):
-        logger.info("Event %s", layerEvent.getName())
-        if layerEvent.getName() == self.__class__.EVENT_START:
+        name = layerEvent.getName()
+        logger.info("Event %s", name)
+        if name == self.__class__.EVENT_START:
             self.queue = layerEvent.getArg('queue')
             logger.info("Started.")
+            return True
+        elif name == self.__class__.EVENT_SEND:
+            number = layerEvent.getArg('number')
+            content = layerEvent.getArg('content')
+            self.message_send(number, content)
             return True
 
     @ProtocolEntityCallback("message")
@@ -107,3 +114,10 @@ class WebsupLayer(YowInterfaceLayer):
     def onReceipt(self, entity):
         ack = OutgoingAckProtocolEntity(entity.getId(), "receipt", "delivery")
         self.toLower(ack)
+
+    def message_send(self, number, content):
+        logger.info('Sending message to %s: %s' % (number, content))
+        outgoingMessage = TextMessageProtocolEntity(
+            content, to="%s@s.whatsapp.net" % number
+        )
+        self.toLower(outgoingMessage)

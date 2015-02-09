@@ -41,7 +41,29 @@
                 <div id="messages-container"></div>
             </div>
         </div>
+
     </div>
+    <nav class="navbar navbar-fixed-bottom">
+        <div class="container">
+            <div class="panel panel-primary">
+                <div class="panel-body">
+                    <div class="row">
+                        <form class="form-inline" id="msg-form">
+                            <div class="form-group col-xs-2">
+                                <input type="text" class="form-control" placeholder="number" id="number" name="number" />
+                            </div>
+                            <div class="form-group col-xs-9">
+                                 <input type="text" class="form-control" style="width: 100%;" placeholder="content" id="content" name="content" />
+                            </div>
+                            <div class="form-group col-xs-1">
+                                <button type="submit" class="btn btn-default pull-right"> Send </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </nav>
 <script src="/static/js/jquery-1.11.2.min.js"></script>
 <script src="/static/js/handlebars-v2.0.0.js"></script>
 <script src="/static/js/bootstrap.min.js"></script>
@@ -67,7 +89,7 @@
             ws = new WebSocket('ws://'+window.location.host+'/websocket');
             ws.onopen = function(evt) {
                 connecting = false;
-                ws.send('connected');
+                ws.send(JSON.stringify({type:'session',msg:'connected'}));
                 $('#connection').addClass('connected');
             }
             ws.onmessage = function(evt) {
@@ -113,6 +135,15 @@
             $('#user-'+sender).addClass('active');
             $('#messages-container .messages').hide();
             $('#messages-'+sender).show();
+            $('#number').val(sender);
+        });
+        $('#msg-form').on('submit',function(){
+            var number = $('#number').val(), content = $('#content').val();
+            if($.isNumeric(number) && !$.isEmptyObject(content)){
+                ws.send(JSON.stringify({ type: 'message', number: number, content: content }));
+                $('#content').val('');
+            }
+            return false;
         });
     });
 </script>

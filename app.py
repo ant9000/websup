@@ -160,8 +160,22 @@ def echo(ws):
                 logger.info('%s %s', username, msg)
             if username.startswith('anonymous@') and \
                     bottle.request.remote_addr != '127.0.0.1':
-                msg = {'type': 'session', 'content': 'reconnect'}
-                ws.send(json.dumps(msg))
+                res = {'type': 'session', 'content': 'reconnect'}
+                ws.send(json.dumps(res))
+            else:
+                data = None
+                try:
+                    data = json.loads(msg)
+                except:
+                    logger.error('message is not valid json data')
+                    continue
+                try:
+                    if data['type'] == 'session':
+                        pass
+                    elif data['type'] == 'message':
+                        stack.send(data['number'],data['content'])
+                except KeyError:
+                    logger.error('message format is not valid')
         except WebSocketError, e:
             logger.error(e)
             if ws in web_clients:

@@ -95,7 +95,7 @@ class WebsupLayer(YowInterfaceLayer):
             if notify == sender:
                 notify = ''
             text = myemoji.replace(text)
-            sender = myemoji.replace(sender)
+            notify = myemoji.replace(notify)
             item = QueueItem(
                 timestamp=timestamp, text=text, sender=sender, url=url,
                 thumb=thumb, notify=notify, data=messageProtocolEntity,

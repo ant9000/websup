@@ -57,9 +57,9 @@
                                 <div class="input-group">
                                     <input type="text" class="form-control" placeholder="content" id="content" name="content" />
                                     <span class="input-group-btn">
-                                        <button class="btn btn-default" type="button"><img src="/static/emoji/img/smile.png" class="emoji"
-                                            data-toggle="modal" data-target="#emoji"
-                                        /></button>
+                                        <button class="btn btn-default" type="button" data-toggle="modal" data-target="#emoji">
+                                            <img src="/static/emoji/img/smile.png" class="emoji" />
+                                        </button>
                                     </span>
                                 </div>
                             </div>

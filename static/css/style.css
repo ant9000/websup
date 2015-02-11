@@ -44,7 +44,10 @@ body > .container { padding-bottom: 90px; }
 }
 
 /* .bubble.odd { margin-left: 40px; } */
-.bubble.own { margin-left: 80px; }
+.bubble.own {
+    margin-left: 80px;
+    color: rgb(51, 122, 183);
+}
 
 .bubble.own:after {
     left: auto;

@@ -2,6 +2,8 @@ body {
   padding: 10px 0px;
   font:1em/1.4 Cambria, Georgia, sans-serif;
 }
+.navbar { height: 90px; }
+body > .container { padding-bottom: 90px; }
 
 #connection { background: url(/static/img/bullet-black-icon.png) no-repeat; padding-left: 36px; min-height: 32px; }
 #connection.connected { background-image: url(/static/img/bullet-blue-icon.png); }
@@ -41,7 +43,11 @@ body {
     z-index: 1;
 }
 
-.bubble.odd { margin-left: 40px; }
+/* .bubble.odd { margin-left: 40px; } */
+.bubble.own {
+    margin-left: 80px;
+    color: rgb(51, 122, 183);
+}
 
 .bubble.own:after {
     left: auto;
@@ -50,7 +56,7 @@ body {
 }
 
 .bubble p { font-size: 70%; padding: 0; margin: 0; }
-.bubble .sender { font-weight: bold; }
+.bubble .number { font-weight: bold; }
 .bubble img { float: left; margin: 0px 15px; }
 .bubble a { text-decoration: none; }
 

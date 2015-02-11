@@ -104,21 +104,20 @@
             templates[this.id] = template;
         });
         var ws, connecting=false;
-        function showMessage(message,own){
+        function showMessage(message){
             $('#users-list .user').removeClass('active');
-            $('#user-'+message.sender).remove();
+            $('#user-'+message.number).remove();
             $('#users-list').prepend(templates['user'](message));
-            var messages = $('#messages-'+message.sender);
+            var messages = $('#messages-'+message.number);
             if(!messages.length){
                 messages = $('<div>');
-                messages.attr('id','messages-'+message.sender);
+                messages.attr('id','messages-'+message.number);
                 messages.addClass('messages');
                 $('#messages-container').append(messages);
             }
             $('#messages-container .messages').hide();
             messages.show();
             message.odd = $('.bubble',messages).length % 2;
-            message.own = own ? 1 : 0;
             messages.append(templates['bubble'](message));
             $('.bubble:last',messages).get(0).scrollIntoView();
         }
@@ -153,12 +152,12 @@
         setInterval(checkConnection,1000); 
         connect();
         $('#users-list').on('click','.user',function(){
-            var sender=$(this).data('sender');
+            var number=$(this).data('number');
             $('#users-list .user').removeClass('active');
-            $('#user-'+sender).addClass('active');
+            $('#user-'+number).addClass('active');
             $('#messages-container .messages').hide();
-            $('#messages-'+sender).show();
-            $('#number').val(sender);
+            $('#messages-'+number).show();
+            $('#number').val(number);
         });
         $('#msg-form').on('submit',function(e){
             e.preventDefault();
@@ -166,7 +165,6 @@
             if($.isNumeric(number) && !$.isEmptyObject(content)){
                 ws.send(JSON.stringify({ type: 'message', number: number, content: content }));
                 $('#content').val('');
-                showMessage({ sender: number, text: content }, true);
             }
         });
     });
@@ -200,8 +198,8 @@ Handlebars.registerHelper('time', function(unix_timestamp) {
 </div>
 </script>
 <script id="user" class="template" type="text/x-handlebars-template">
-<div class="user list-group-item active" id="user-{{ sender }}" data-sender="{{ sender }}">
-  <span class="sender">{{ sender }}{{#if notify}} - {{{ notify }}}{{/if}}</span>
+<div class="user list-group-item active" id="user-{{ number }}" data-number="{{ number }}">
+  <span class="number">{{ number }}{{#if notify}} - {{{ notify }}}{{/if}}</span>
   <p class="time text-right">{{ time timestamp }}</p>
 </div>
 </script>

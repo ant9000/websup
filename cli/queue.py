@@ -6,29 +6,32 @@ import time
 class QueueItem:
     def __init__(
         self, timestamp=None, text=None, url=None,
-        thumb=None, sender=None, notify=None, data=None,
+        thumb=None, number=None, notify=None, data=None,
+        own=False,
     ):
         self.timestamp = timestamp or int(time.time())
         self.datetime = datetime.fromtimestamp(self.timestamp)
         self.text = text
         self.url = url
         self.thumb = thumb
-        self.sender = sender
+        self.number = number
         self.notify = notify
+        self.own = own
         self.data = data
 
     def __str__(self):
         out = self.text
-        if self.sender:
-            out = '%s: %s' % (self.sender, out)
+        if self.number:
+            out = '%s: %s' % (self.number, out)
         return out
 
     def asDict(self):
         return {
             'timestamp': self.timestamp,
-            'sender': self.sender,
+            'number': self.number,
             'notify': self.notify,
             'text': self.text,
             'url': self.url,
             'thumb': self.thumb,
+            'own': self.own,
         }

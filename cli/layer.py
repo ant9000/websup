@@ -97,14 +97,14 @@ class WebsupLayer(YowInterfaceLayer):
 
         if text or url:
             timestamp = messageProtocolEntity.getTimestamp()
-            sender = messageProtocolEntity.getFrom(full=False)
+            number = messageProtocolEntity.getFrom(full=False)
             notify = myemoji.escape(messageProtocolEntity.getNotify())
-            if notify == sender:
+            if notify == number:
                 notify = ''
             text = myemoji.replace(text)
             notify = myemoji.replace(notify)
             item = QueueItem(
-                timestamp=timestamp, text=text, sender=sender, url=url,
+                timestamp=timestamp, text=text, number=number, url=url,
                 thumb=thumb, notify=notify, data=messageProtocolEntity,
             )
             self.queue.put(item)
@@ -118,6 +118,6 @@ class WebsupLayer(YowInterfaceLayer):
     def message_send(self, number, content):
         logger.info('Sending message to %s: %s' % (number, content))
         outgoingMessage = TextMessageProtocolEntity(
-            content, to="%s@s.whatsapp.net" % number
+            content.encode('utf-8'), to="%s@s.whatsapp.net" % number
         )
         self.toLower(outgoingMessage)

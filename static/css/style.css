@@ -43,7 +43,8 @@ body > .container { padding-bottom: 90px; }
     z-index: 1;
 }
 
-.bubble.odd { margin-left: 40px; }
+/* .bubble.odd { margin-left: 40px; } */
+.bubble.own { margin-left: 80px; }
 
 .bubble.own:after {
     left: auto;

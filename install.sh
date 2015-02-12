@@ -11,6 +11,7 @@ virtualenv env
 . env/bin/activate
 pip install -U pip
 pip install -r requirements.txt 
+./yowsup_registration_patch.sh
 cat<<MSG
 ############################
 Setup completed. To run the test app, use

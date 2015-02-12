@@ -14,5 +14,6 @@ tar zcvf $NAME -C .. websup/ \
   --exclude .gitignore \
   --exclude package.sh \
   --exclude configuration.ini \
+  --exclude logs \
   --exclude "*.pyc" \
   --exclude "websup-git-*.tgz"

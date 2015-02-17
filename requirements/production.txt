@@ -1,2 +1,2 @@
 -r base.txt
-yowsup2==2.2.15
+yowsup2==2.2.78

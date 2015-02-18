@@ -97,7 +97,10 @@ class WebsupLayer(YowInterfaceLayer):
 
         if text or url:
             timestamp = messageProtocolEntity.getTimestamp()
-            number = messageProtocolEntity.getFrom(full=False)
+            if messageProtocolEntity.isGroupMessage():
+                number = messageProtocolEntity.getParticipant(full=False)
+            else:
+                number = messageProtocolEntity.getFrom(full=False)
             notify = myemoji.escape(messageProtocolEntity.getNotify())
             if notify == number:
                 notify = ''

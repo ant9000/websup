@@ -1,10 +1,11 @@
 from django.conf import settings
-settings.configure()
-settings.STATIC_URL = '/static/'
 from django.utils.html import escape, escapejs
-import emoji
 from os import path
 import binascii
+
+settings.configure()
+settings.STATIC_URL = '/static/'
+import emoji
 
 EMOJI_STATIC_ROOT = path.join(path.dirname(emoji.__file__), 'static', 'emoji')
 

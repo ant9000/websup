@@ -7,6 +7,7 @@ from yowsup.env import S40YowsupEnv
 import sys
 import gevent
 from .layer import WebsupLayer
+import logging
 
 
 # patch to support audio / video messages
@@ -30,6 +31,7 @@ class MyYowMediaProtocolLayer(YowMediaProtocolLayer):
             else:
                 return YowMediaProtocolLayer.recvMessageStanza(self, node)
 
+
 class MyStackBuilder(YowStackBuilder):
     def build(self):
         layers = []
@@ -39,6 +41,9 @@ class MyStackBuilder(YowStackBuilder):
             layers.append(layer)
         return YowStack(layers, reversed=False)
 # end patch
+
+
+logger = logging.getLogger(__name__)
 
 
 class WebsupStack(object):
@@ -64,7 +69,10 @@ class WebsupStack(object):
         )
         try:
             while True:
-                self.stack.loop(timeout=0.5, count=1)
+                try:
+                    self.stack.loop(timeout=0.5, count=1)
+                except ValueError, e:
+                    logger.error("%s", e)
                 gevent.sleep(0.5)
         except AuthError as e:
             print("Auth Error, reason %s" % e)

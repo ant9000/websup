@@ -2,11 +2,10 @@
 
 import logging
 import logging.config
-logging.config.fileConfig('logging.conf')
-
 import sys
 import gevent
 import bottle
+from bottle.ext import sqlite
 from bottle.ext.websocket import GeventWebSocketServer
 from bottle.ext.websocket import websocket
 from geventwebsocket import WebSocketError
@@ -18,6 +17,8 @@ from cli import myemoji
 from cli.mail import Mailer
 import os
 import json
+
+logging.config.fileConfig('logging.conf')
 
 
 def here(path):
@@ -89,7 +90,9 @@ session_opts = {
     'session.cookie_expires': True,
     'session.auto': True,
 }
-app = SessionMiddleware(bottle.app(), session_opts)
+app = bottle.app()
+app.install(sqlite.Plugin(dbfile=here('db/websup.db')))
+app = SessionMiddleware(app, session_opts)
 web_clients = {}
 
 
@@ -224,7 +227,7 @@ def queue_consumer():
                         direction = item.own and "to" or "from"
                         logger.info(
                             'user "%s", msg %s "%s"',
-                             user, direction, item.number
+                            user, direction, item.number
                         )
                         conn.send(json.dumps(msg))
             # work done, now we can consume message

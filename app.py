@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-import logging
-import logging.config
+from cli.logconfig import logging
 import sys
 import gevent
 import bottle
@@ -17,8 +16,6 @@ from cli import myemoji
 from cli.mail import Mailer
 import os
 import json
-
-logging.config.fileConfig('logging.conf')
 
 
 def here(path):

@@ -6,7 +6,7 @@ from yowsup import env
 from yowsup.env import S40YowsupEnv
 import sys
 import gevent
-from .layer import WebsupLayer
+from .layer import LoggedInSignalLayer, WebsupLayer
 import logging
 logger = logging.getLogger(__name__)
 
@@ -49,6 +49,7 @@ class MyStackBuilder(YowStackBuilder):
             return layer
 
         layers = []
+        layers.append(LoggedInSignalLayer)
         for layer in self.layers:
             layers.append(
                 replace(layer,YowMediaProtocolLayer,MyYowMediaProtocolLayer)

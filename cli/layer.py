@@ -1,3 +1,4 @@
+from yowsup.layers import YowLayer, YowLayerEvent
 from yowsup.layers.interface import YowInterfaceLayer, ProtocolEntityCallback
 from yowsup.layers.protocol_messages.protocolentities import \
     TextMessageProtocolEntity
@@ -9,6 +10,10 @@ from yowsup.layers.protocol_receipts.protocolentities import \
     OutgoingReceiptProtocolEntity
 from yowsup.layers.protocol_acks.protocolentities import \
     OutgoingAckProtocolEntity
+from yowsup.layers.protocol_groups.protocolentities import \
+    ListGroupsIqProtocolEntity
+from yowsup.layers.network import YowNetworkLayer
+from yowsup.layers.auth import YowAuthenticationProtocolLayer
 
 from .queue import QueueItem
 from . import myemoji
@@ -16,6 +21,23 @@ import os
 import binascii
 import logging
 logger = logging.getLogger(__name__)
+
+
+# needed to signal successful login to upper layers
+class LoggedInSignalLayer(YowLayer):
+    EVENT_LOGGED_IN = "org.openwhatsapp.yowsup.event.auth.logged_in"
+
+    def send(self, data):
+        self.toLower(data)
+
+    def receive(self, data):
+        self.toUpper(data)
+
+    def onEvent(self, yowLayerEvent):
+        logger.debug('catched event %s' % yowLayerEvent.getName())
+        if yowLayerEvent.getName() == \
+                YowAuthenticationProtocolLayer.EVENT_AUTHED:
+            self.emitEvent(YowLayerEvent(self.__class__.EVENT_LOGGED_IN))
 
 
 class WebsupLayer(YowInterfaceLayer):
@@ -38,6 +60,12 @@ class WebsupLayer(YowInterfaceLayer):
             content = layerEvent.getArg('content')
             self.message_send(number, content)
             return True
+        elif name == YowNetworkLayer.EVENT_STATE_CONNECTED:
+            pass
+        elif name == YowNetworkLayer.EVENT_STATE_DISCONNECTED:
+            logger.warning("Disconnected: %s", layerEvent.getArg('reason'))
+        elif name == LoggedInSignalLayer.EVENT_LOGGED_IN:
+            self.groups_list()
 
     @ProtocolEntityCallback("message")
     def onMessage(self, messageProtocolEntity):
@@ -124,3 +152,8 @@ class WebsupLayer(YowInterfaceLayer):
             content.encode('utf-8'), to="%s@s.whatsapp.net" % number
         )
         self.toLower(outgoingMessage)
+
+    def groups_list(self):
+        entity = ListGroupsIqProtocolEntity()
+        logger.info('Asking for group list.')
+        self.toLower(entity)

@@ -171,7 +171,17 @@ def echo(ws):
                     continue
                 try:
                     if data['type'] == 'session':
-                        pass
+                        if data['msg'] == 'connected':
+                            # TODO: fetch last messages from DB and send them
+                            pass
+                        elif data['msg'] == 'history':
+                            page = 0
+                            try:
+                                page = int(data.get('page', 0))
+                            except ValueError:
+                                pass
+                            # TODO: fetch a page of messages and send them
+                            pass
                     elif data['type'] == 'message':
                         item = QueueItem(
                             text=data['content'],
@@ -229,6 +239,8 @@ def queue_consumer():
                         conn.send(json.dumps(msg))
             # work done, now we can consume message
             queue.get()
+            # TODO: save item to db
+            pass
         except gevent.queue.Empty:
             pass
         except WebSocketError, e:

@@ -14,7 +14,8 @@ from yowsup.layers.protocol_groups.protocolentities import \
     ListGroupsIqProtocolEntity, \
     ListGroupsResultIqProtocolEntity, \
     ParticipantsGroupsIqProtocolEntity, \
-    ListParticipantsResultIqProtocolEntity
+    ListParticipantsResultIqProtocolEntity, \
+    SubjectGroupsNotificationProtocolEntity
 from yowsup.layers.protocol_groups.structs.group import Group
 
 from .queue import QueueItem
@@ -146,7 +147,6 @@ class WebsupLayer(YowInterfaceLayer):
         logger.info('Group %s, asking for participants.' % group_jid)
         self.toLower(entity)
 
-
     @ProtocolEntityCallback("success")
     def onSuccess(self, entity):
         self.connected = True
@@ -160,14 +160,33 @@ class WebsupLayer(YowInterfaceLayer):
 
     @ProtocolEntityCallback("iq")
     def onIq(self, entity):
-        if isinstance(entity,ListGroupsResultIqProtocolEntity):
+        if isinstance(entity, ListGroupsResultIqProtocolEntity):
             logger.info('Group list results:')
             for group in entity.getGroups():
                 logger.info('- %s' % group)
                 self.group_participants(group.getId())
-        elif isinstance(entity,ListParticipantsResultIqProtocolEntity):
+            else:
+                logger.info('- no groups')
+        elif isinstance(entity, ListParticipantsResultIqProtocolEntity):
             logger.info('Group %s participants:' % entity.getFrom())
             for participant in entity.getParticipants():
                 logger.info('- %s' % participant)
+            else:
+                logger.info('- no participants')
         else:
             logger.info('Iq received entity %s' % entity.__class__)
+
+    @ProtocolEntityCallback("notification")
+    def onNotification(self, entity):
+        if isinstance(entity, SubjectGroupsNotificationProtocolEntity):
+            logger.info(
+                'Group %s new subject: "%s"' % (
+                    entity.getFrom(),entity.getSubject()
+                )
+            )
+        else:
+            logger.info('Notification received entity %s' % entity.__class__)
+
+    @ProtocolEntityCallback("presence")
+    def onPresence(self, entity):
+        logger.info('Presence received entity %s' % entity)

@@ -1,13 +1,14 @@
 from yowsup.stacks import YowStack, YowStackBuilder
 from yowsup.layers.network import YowNetworkLayer
 from yowsup.layers.auth import AuthError
-from yowsup.layers import YowLayerEvent
+from yowsup.layers import YowLayerEvent, YowParallelLayer
 from yowsup import env
 from yowsup.env import S40YowsupEnv
 import sys
 import gevent
 from .layer import WebsupLayer
 import logging
+logger = logging.getLogger(__name__)
 
 
 # patch to support audio / video messages
@@ -19,6 +20,9 @@ from yowsup.layers.protocol_media.protocolentities \
 
 
 class MyYowMediaProtocolLayer(YowMediaProtocolLayer):
+    def __str__(self):
+        return "My Media Layer"
+
     def recvMessageStanza(self, node):
         if node.getAttributeValue("type") == "media":
             mediaNode = node.getChild("media")
@@ -30,20 +34,31 @@ class MyYowMediaProtocolLayer(YowMediaProtocolLayer):
                 self.toUpper(entity)
             else:
                 return YowMediaProtocolLayer.recvMessageStanza(self, node)
+# end patch
 
 
 class MyStackBuilder(YowStackBuilder):
     def build(self):
+        def replace(layer,oldtype,newtype):
+            if type(layer) == oldtype:
+              layer = newtype()
+            elif type(layer) == YowParallelLayer:
+               layer.sublayers = tuple(
+                   [ replace(l,oldtype,newtype) for l in layer.sublayers ]
+               )
+            return layer
+
         layers = []
         for layer in self.layers:
-            if layer == YowMediaProtocolLayer:
-                layer = MyYowMediaProtocolLayer
-            layers.append(layer)
+            layers.append(
+                replace(layer,YowMediaProtocolLayer,MyYowMediaProtocolLayer)
+            )
+#       for layer in layers:
+#           print layer
+#           if type(layer) == YowParallelLayer:
+#               for l in layer.sublayers:
+#                   print '\t',l 
         return YowStack(layers, reversed=False)
-# end patch
-
-
-logger = logging.getLogger(__name__)
 
 
 class WebsupStack(object):

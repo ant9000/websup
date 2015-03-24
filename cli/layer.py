@@ -9,9 +9,13 @@ from yowsup.layers.protocol_receipts.protocolentities import \
     OutgoingReceiptProtocolEntity
 from yowsup.layers.protocol_acks.protocolentities import \
     OutgoingAckProtocolEntity
-from yowsup.layers.protocol_groups.protocolentities import \
-    ListGroupsIqProtocolEntity
 from yowsup.layers.network import YowNetworkLayer
+from yowsup.layers.protocol_groups.protocolentities import \
+    ListGroupsIqProtocolEntity, \
+    ListGroupsResultIqProtocolEntity, \
+    ParticipantsGroupsIqProtocolEntity, \
+    ListParticipantsResultIqProtocolEntity
+from yowsup.layers.protocol_groups.structs.group import Group
 
 from .queue import QueueItem
 from . import myemoji
@@ -137,6 +141,12 @@ class WebsupLayer(YowInterfaceLayer):
         logger.info('Asking for group list.')
         self.toLower(entity)
 
+    def group_participants(self, group_jid):
+        entity = ParticipantsGroupsIqProtocolEntity('%s@g.us' % group_jid)
+        logger.info('Group %s, asking for participants.' % group_jid)
+        self.toLower(entity)
+
+
     @ProtocolEntityCallback("success")
     def onSuccess(self, entity):
         self.connected = True
@@ -150,4 +160,14 @@ class WebsupLayer(YowInterfaceLayer):
 
     @ProtocolEntityCallback("iq")
     def onIq(self, entity):
-        logger.info('Iq received entity %s' % entity)
+        if isinstance(entity,ListGroupsResultIqProtocolEntity):
+            logger.info('Group list results:')
+            for group in entity.getGroups():
+                logger.info('- %s' % group)
+                self.group_participants(group.getId())
+        elif isinstance(entity,ListParticipantsResultIqProtocolEntity):
+            logger.info('Group %s participants:' % entity.getFrom())
+            for participant in entity.getParticipants():
+                logger.info('- %s' % participant)
+        else:
+            logger.info('Iq received entity %s' % entity.__class__)

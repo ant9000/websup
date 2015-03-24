@@ -44,7 +44,7 @@ class MyStackBuilder(YowStackBuilder):
                 layer = newtype()
             elif type(layer) == YowParallelLayer:
                 layer.sublayers = tuple(
-                   [replace(l, oldtype, \newtype) for l in layer.sublayers]
+                   [replace(l, oldtype, newtype) for l in layer.sublayers]
                 )
             return layer
 

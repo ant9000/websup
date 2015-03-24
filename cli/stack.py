@@ -39,26 +39,26 @@ class MyYowMediaProtocolLayer(YowMediaProtocolLayer):
 
 class MyStackBuilder(YowStackBuilder):
     def build(self):
-        def replace(layer,oldtype,newtype):
+        def replace(layer, oldtype, newtype):
             if type(layer) == oldtype:
-              layer = newtype()
+                layer = newtype()
             elif type(layer) == YowParallelLayer:
-               layer.sublayers = tuple(
-                   [ replace(l,oldtype,newtype) for l in layer.sublayers ]
-               )
+                layer.sublayers = tuple(
+                   [replace(l, oldtype, \newtype) for l in layer.sublayers]
+                )
             return layer
 
         layers = []
         layers.append(LoggedInSignalLayer)
         for layer in self.layers:
             layers.append(
-                replace(layer,YowMediaProtocolLayer,MyYowMediaProtocolLayer)
+                replace(layer, YowMediaProtocolLayer, MyYowMediaProtocolLayer)
             )
 #       for layer in layers:
 #           print layer
 #           if type(layer) == YowParallelLayer:
 #               for l in layer.sublayers:
-#                   print '\t',l 
+#                   print '\t',l
         return YowStack(layers, reversed=False)
 
 

@@ -1,4 +1,3 @@
-from yowsup.layers import YowLayer, YowLayerEvent
 from yowsup.layers.interface import YowInterfaceLayer, ProtocolEntityCallback
 from yowsup.layers.protocol_messages.protocolentities import \
     TextMessageProtocolEntity
@@ -13,7 +12,6 @@ from yowsup.layers.protocol_acks.protocolentities import \
 from yowsup.layers.protocol_groups.protocolentities import \
     ListGroupsIqProtocolEntity
 from yowsup.layers.network import YowNetworkLayer
-from yowsup.layers.auth import YowAuthenticationProtocolLayer
 
 from .queue import QueueItem
 from . import myemoji
@@ -21,23 +19,6 @@ import os
 import binascii
 import logging
 logger = logging.getLogger(__name__)
-
-
-# needed to signal successful login to upper layers
-class LoggedInSignalLayer(YowLayer):
-    EVENT_LOGGED_IN = "org.openwhatsapp.yowsup.event.auth.logged_in"
-
-    def send(self, data):
-        self.toLower(data)
-
-    def receive(self, data):
-        self.toUpper(data)
-
-    def onEvent(self, yowLayerEvent):
-        logger.debug('catched event %s' % yowLayerEvent.getName())
-        if yowLayerEvent.getName() == \
-                YowAuthenticationProtocolLayer.EVENT_AUTHED:
-            self.emitEvent(YowLayerEvent(self.__class__.EVENT_LOGGED_IN))
 
 
 class WebsupLayer(YowInterfaceLayer):
@@ -64,8 +45,6 @@ class WebsupLayer(YowInterfaceLayer):
             pass
         elif name == YowNetworkLayer.EVENT_STATE_DISCONNECTED:
             logger.warning("Disconnected: %s", layerEvent.getArg('reason'))
-        elif name == LoggedInSignalLayer.EVENT_LOGGED_IN:
-            self.groups_list()
 
     @ProtocolEntityCallback("message")
     def onMessage(self, messageProtocolEntity):
@@ -157,3 +136,18 @@ class WebsupLayer(YowInterfaceLayer):
         entity = ListGroupsIqProtocolEntity()
         logger.info('Asking for group list.')
         self.toLower(entity)
+
+    @ProtocolEntityCallback("success")
+    def onSuccess(self, entity):
+        self.connected = True
+        logger.info("Logged in!")
+        self.groups_list()
+
+    @ProtocolEntityCallback("failure")
+    def onFailure(self, entity):
+        self.connected = False
+        logger.warning("Login Failed, reason: %s" % entity.getReason())
+
+    @ProtocolEntityCallback("iq")
+    def onIq(self, entity):
+        logger.info('Iq received entity %s' % entity)

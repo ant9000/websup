@@ -6,31 +6,31 @@ var websup = angular.module('websup', [
   'ui.bootstrap',
 ]);
 
-websup.factory('socket', ['$window', function(win) {
-  if(!win.WebSocket){
-    if(win.MozWebSocket){
-      win.WebSocket = win.MozWebSocket;
+websup.factory('socket', ['$rootScope', '$window', function($rootScope, $window) {
+  if(!$window.WebSocket){
+    if($window.MozWebSocket){
+      $window.WebSocket = $window.MozWebSocket;
     }else{
-      win.alert("Your browser doesn't support WebSockets.");
+      $window.alert("Your browser doesn't support WebSockets.");
       return function(){};
     }
   }
 
   var ws;
-  var state = 'disconnected';
+  $rootScope.connection_state = 'disconnected';
   function connect(){
-    state = 'connecting';
-    ws = new WebSocket('ws://'+win.location.host+'/websocket');
+    $rootScope.connection_state = 'connecting';
+    ws = new WebSocket('ws://'+$window.location.host+'/websocket');
     ws.onopen = function(evt) {
-      state = 'connected';
+      $rootScope.connection_state = 'connected';
       ws.send(JSON.stringify({type:'session',msg:'connected'}));
     }
     ws.onclose = function(evt) {
-      state = 'disconnected';
+      $rootScope.connection_state = 'disconnected';
       ws = null;
     }
     function checkConnection(){
-      if((ws===null) && (state!='connecting')){ connect(); }
+      if((ws===null) && ($rootScope.connection_state!='connecting')){ connect(); }
     }
     //automatic reconnection
     setInterval(checkConnection,1000); 
@@ -40,27 +40,32 @@ websup.factory('socket', ['$window', function(win) {
 }]);
 
 websup.controller('MainCtrl', ['$scope', 'socket', '$log', function($scope,socket,$log){
-  $scope.connection_state = socket.state;
   $scope.users = {};
   $scope.current_user = null;
-  $scope.username = 'anonymous';
+  $scope.username = null;
+  $scope.messages = [];
 
   socket.onmessage = function(evt){
-    var message = JSON.parse(evt.data);
-    $log.log(message);
-    if(message.type == 'whatsapp'){
-      $scope.current_user = message.number;
-      if($scope.users[$scope.current_user] == undefined){
-        $scope.users[$scope.current_user] = { 
-          number: message.number,
-          notify: message.notify,
-          messages: []
-        };
-      }
-      $scope.users[$scope.current_user]['last_timestamp'] = message.timestamp;
-      $scope.users[$scope.current_user]['messages'].push(message);
-    }else if(message.type=='session'){
-      if(message.content=='reconnect'){
+    var data = JSON.parse(evt.data);
+//  $log.log(data);
+    if(data.type == 'whatsapp'){
+      var message = data.content;
+      $scope.$apply(function(){
+        $scope.current_user = message.number;
+//      $log.log($scope.current_user);
+        if($scope.users[$scope.current_user] == undefined){
+          $scope.users[$scope.current_user] = { 
+            number: message.number,
+            notify: message.notify,
+            messages: []
+          };
+        }
+        $scope.users[$scope.current_user]['last_timestamp'] = message.timestamp;
+        $scope.users[$scope.current_user]['messages'].push(message);
+        $scope.messages = $scope.users[$scope.current_user].messages;
+      });
+    }else if(data.type=='session'){
+      if(data.content=='reconnect'){
         // TODO: session expired
       } 
     }

@@ -32,15 +32,11 @@
                 </div>
             </div>
             <div class="panel-body">
-                Welcome, <b>{{ username }}</b>.
+                Welcome, <b>{{ username || 'anonymous' }}</b>.
             </div>
-<!--
-/ if username:
-            <div class="panel-footer">
-                    Click to <span><a href="/logout">logout</a>.
+            <div ng-if="username" class="panel-footer">
+                Click to <span><a href="/logout">logout</a>.
             </div>
-/ end
--->
         </div>
 
         <div class="row">
@@ -57,7 +53,7 @@
                 </div>
             </div>
             <div class="col-md-4">
-                <div ng-if="current_user" ng-repeater="message in messages[current_user]" id="messages-container">
+                <div ng-if="messages.length" ng-repeater="message in messages" id="messages-container">
                      <div class="bubble {{ message.own }}">
                        <a ng-if="message.url" href="{{ message.url }}" target="_blank">
                          {{ message.thumb }} 

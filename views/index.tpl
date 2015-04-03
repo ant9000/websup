@@ -27,7 +27,7 @@
     <div class="container">
         <div class="panel panel-primary">
             <div class="panel-heading">
-                <div class="panel-title {{ connection_state }}">
+                <div class="panel-title {{ connection_state }}" id="connection">
                     <h3>Websup!</h3>
                 </div>
             </div>
@@ -46,14 +46,14 @@
         <div class="row">
             <div class="col-md-4">
                 <div id="users-list" class="list-group">
-                    <div ng-repeat="user in users" class="user list-group-item active" id="user-{{ user.number }}" data-number="{{ user.number }}">
+                    <div ng-repeat="user in users|orderBy:'-last_timestamp'" class="user list-group-item active" id="user-{{ user.number }}" data-number="{{ user.number }}">
                       <span class="number">{{ user.number }}<span ng-if="user.notify"> - {{ user.notify }}</span></span>
                       <p class="time text-right">{{ user.last_timestamp }}</p>
                     </div>
                 </div>
             </div>
             <div class="col-md-4">
-                <div ng-if="messages.length" ng-repeater="message in messages" id="messages-container">
+                <div ng-if="messages.length" ng-repeat="message in messages" id="messages-container">
                      <div class="bubble {{ message.own }}">
                        <a ng-if="message.url" href="{{ message.url }}" target="_blank">
                          {{ message.thumb }} 

@@ -46,7 +46,9 @@
         <div class="row">
             <div class="col-md-4">
                 <div id="users-list" class="list-group">
-                    <div ng-repeat="user in users|orderBy:'-last_timestamp'" class="user list-group-item active" id="user-{{ user.number }}" data-number="{{ user.number }}">
+                    <div ng-repeat="user in users|orderBy:'-last_timestamp'"
+                         class="user list-group-item" ng-class="{ active: user.number == current_user }"
+                         ng-click="setUser(user.number)">
                       <span class="number">{{ user.number }}<span ng-if="user.notify"> - {{ user.notify }}</span></span>
                       <p class="time text-right">{{ user.last_timestamp }}</p>
                     </div>
@@ -54,7 +56,7 @@
             </div>
             <div class="col-md-4">
                 <div ng-if="messages.length" ng-repeat="message in messages" id="messages-container">
-                     <div class="bubble {{ message.own }}">
+                     <div class="bubble" ng-class="{ own: message.own }">
                        <a ng-if="message.url" href="{{ message.url }}" target="_blank">
                          {{ message.thumb }} 
                          {{ message.text }}
@@ -78,12 +80,12 @@
             <div class="panel panel-primary">
                 <div class="panel-body">
                     <div class="row">
-                        <form id="msg-form">
+                        <form id="msg-form" ng-submit="sendMessage()">
                             <div class="col-lg-2">
-                                <input type="text" class="form-control" placeholder="number" id="number" name="number" />
+                                <input type="number" class="form-control" placeholder="number" name="number" ng-model="number" required="" />
                             </div>
                             <div class="col-lg-9">
-                                <input type="text" class="form-control" placeholder="content" id="content" name="content" />
+                                <input type="text" class="form-control" placeholder="content" name="content" ng-model="content" required="" />
                             </div>
                             <div class="col-lg-1">
                                 <button type="submit" class="btn btn-default pull-right"> Send </button>

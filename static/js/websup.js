@@ -45,8 +45,8 @@ websup.factory('socket', ['$window', '$rootScope', '$interval', '$log', function
        $interval(checkConnection,1000); 
        connect();
      },
-     send: function(message){
-       // TODO
+     send: function(number, content){
+       ws.send(JSON.stringify({ type: 'message', number: number, content: content }));
      }
   }
 }]);
@@ -56,6 +56,8 @@ websup.controller('MainCtrl', ['$scope', 'socket', '$log', function($scope,socke
   $scope.current_user = null;
   $scope.users = {};
   $scope.messages = [];
+  $scope.number = '';
+  $scope.content = '';
   $scope.$on('connection',function(evt,state){
     $log.log(state);
     $scope.connection_state = state;
@@ -83,6 +85,14 @@ websup.controller('MainCtrl', ['$scope', 'socket', '$log', function($scope,socke
       } 
     }
   });
+  $scope.setUser = function(number){
+    $scope.current_user = number;
+    $scope.messages = $scope.users[$scope.current_user]['messages'];
+    $scope.number = number;
+  }
+  $scope.sendMessage = function(){
+    socket.send($scope.number,$scope.content);
+    $scope.content = '';
+  }
   socket.start();
-
 }]);

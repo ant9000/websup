@@ -17,6 +17,12 @@ from yowsup.layers.protocol_groups.protocolentities import \
     ListParticipantsResultIqProtocolEntity, \
     SubjectGroupsNotificationProtocolEntity
 from yowsup.layers.protocol_groups.structs.group import Group
+from yowsup.layers.protocol_notifications.protocolentities.notification_status \
+    import StatusNotificationProtocolEntity
+from yowsup.layers.protocol_contacts.protocolentities.notification_contact_update \
+    import UpdateContactNotificationProtocolEntity
+from yowsup.layers.protocol_notifications.protocolentities.notification_picture \
+    import PictureNotificationProtocolEntity
 
 from .queue import QueueItem
 from . import myemoji
@@ -184,6 +190,16 @@ class WebsupLayer(YowInterfaceLayer):
                     entity.getFrom(),entity.getSubject()
                 )
             )
+        elif isinstance(entity, StatusNotificationProtocolEntity):
+            logger.info(
+                'Status %s for "%s" %s' % (
+                    entity.status,
+                    entity.notify,
+                    entity.getFrom()
+                )
+            )
+#       elif isinstance(entity, UpdateContactNotificationProtocolEntity):
+#       elif isinstance(entity, PictureNotificationProtocolEntity):
         else:
             logger.info('Notification received entity %s' % entity.__class__)
 

@@ -82,7 +82,7 @@
                     <div class="row">
                         <form id="msg-form" ng-submit="sendMessage()">
                             <div class="col-lg-2">
-                                <input type="number" class="form-control" placeholder="number" name="number" ng-model="number" required="" />
+                                <input type="number" string-to-number class="form-control" placeholder="number" name="number" ng-model="number" required="" />
                             </div>
                             <div class="col-lg-9">
                                 <input type="text" class="form-control" placeholder="content" name="content" ng-model="content" required="" />

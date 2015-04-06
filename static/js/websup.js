@@ -88,7 +88,7 @@ websup.controller('MainCtrl', ['$scope', 'socket', '$log', function($scope,socke
   $scope.setUser = function(number){
     $scope.current_user = number;
     $scope.messages = $scope.users[$scope.current_user]['messages'];
-    $scope.number = number;
+    $scope.number = parseInt(number);
   }
   $scope.sendMessage = function(){
     socket.send($scope.number,$scope.content);

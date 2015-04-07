@@ -34,33 +34,21 @@ class MyYowMediaProtocolLayer(YowMediaProtocolLayer):
                 self.toUpper(entity)
             else:
                 return YowMediaProtocolLayer.recvMessageStanza(self, node)
-# end patch
 
 
 class MyStackBuilder(YowStackBuilder):
-    def build(self):
-        def replace(layer, oldtype, newtype):
-            if type(layer) == oldtype:
-                layer = newtype()
-            elif type(layer) == YowParallelLayer:
-                layer.sublayers = tuple(
-                   [replace(l, oldtype, newtype) for l in layer.sublayers]
-                )
-            return layer
-
-        layers = []
-        for layer in self.layers:
-            layers.append(
-                replace(layer, YowMediaProtocolLayer, MyYowMediaProtocolLayer)
-            )
-#       for layer in layers:
-#           if isinstance(layer, YowParallelLayer):
-#               print layer.__class__
-#               for l in layer.sublayers:
-#                   print '\t',l
-#           else:
-#               print layer
-        return YowStack(layers, reversed=False)
+    @staticmethod
+    def getProtocolLayers(groups=True, media=True, privacy=True):
+        layers = YowStackBuilder.getProtocolLayers(groups, media, privacy)
+        if media:
+            replaced = []
+            for layer in layers:
+                if layer == YowMediaProtocolLayer:
+                    layer = MyYowMediaProtocolLayer
+                replaced.push(layer)
+            layers = replaced
+        return layers
+# end patch
 
 
 class WebsupStack(object):

@@ -187,7 +187,7 @@ class WebsupLayer(YowInterfaceLayer):
         if isinstance(entity, SubjectGroupsNotificationProtocolEntity):
             logger.info(
                 'Group %s new subject: "%s"' % (
-                    entity.getFrom(),entity.getSubject()
+                    entity.getFrom(), entity.getSubject()
                 )
             )
         elif isinstance(entity, StatusNotificationProtocolEntity):

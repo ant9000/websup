@@ -51,7 +51,7 @@ websup.factory('socket', ['$window', '$rootScope', '$interval', '$log', function
   }
 }]);
 
-websup.controller('MainCtrl', ['$scope', 'socket', '$log', function($scope,socket,$log){
+websup.controller('MainCtrl', ['$scope', 'socket', '$log', '$window', function($scope,socket,$log,$window){
   $scope.username = null;
   $scope.current_user = null;
   $scope.users = {};
@@ -80,8 +80,10 @@ websup.controller('MainCtrl', ['$scope', 'socket', '$log', function($scope,socke
       $scope.users[$scope.current_user]['messages'].push(message);
       $scope.messages = $scope.users[$scope.current_user]['messages'];
     }else if(data.type=='session'){
-      if(data.content=='reconnect'){
-        // TODO: session expired
+      if(data.content=='connected'){
+        $scope.username = data.username;
+      }else if(data.content=='not authenticated'){
+        $window.location = '/login';
       } 
     }
   });

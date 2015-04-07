@@ -31,10 +31,10 @@
                     <h3>Websup!</h3>
                 </div>
             </div>
-            <div class="panel-body">
-                Welcome, <b>{{ username || 'anonymous' }}</b>.
+            <div ng-if="username" class="panel-body">
+                Welcome, <b>{{ username }}</b>.
             </div>
-            <div ng-if="username" class="panel-footer">
+            <div ng-if="username && username.substr(0,9)!='anonymous'" class="panel-footer">
                 Click to <span><a href="/logout">logout</a>.
             </div>
         </div>

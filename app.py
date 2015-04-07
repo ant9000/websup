@@ -160,7 +160,7 @@ def echo(ws):
                 logger.info('%s %s', username, msg)
             if username.startswith('anonymous@') and \
                     bottle.request.remote_addr != '127.0.0.1':
-                res = {'type': 'session', 'content': 'reconnect'}
+                res = {'type': 'session', 'content': 'not authenticated'}
                 ws.send(json.dumps(res))
             else:
                 data = None
@@ -171,6 +171,12 @@ def echo(ws):
                     continue
                 try:
                     if data['type'] == 'session':
+                        res = {
+                            'type': 'session',
+                            'content': 'connected',
+                            'username': username,
+                        }
+                        ws.send(json.dumps(res))
                         if data['msg'] == 'connected':
                             # TODO: fetch last messages from DB and send them
                             pass

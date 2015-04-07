@@ -19,9 +19,12 @@
     <script src="/static/js/jquery-1.11.2.min.js"></script>
     <script src="/static/js/handlebars-v2.0.0.js"></script>
 
-    <script src="/static/js/websup.js"></script>
+    <script src="/static/js/websup.app.js"></script>
+    <script src="/static/js/websup.services.js"></script>
+    <script src="/static/js/websup.controllers.js"></script>
 </head>
 <body ng-controller="MainCtrl">
+
     <div class="container">
         <div class="panel panel-primary">
             <div class="panel-heading">
@@ -41,58 +44,8 @@
             <p></p>
         </div>
 
-        <div class="row">
-            <div class="col-md-4">
-                <div id="users-list" class="list-group">
-                    <div ng-repeat="user in users|orderBy:'-last_timestamp'"
-                         class="user list-group-item" ng-class="{ active: user.number == current_user }"
-                         ng-click="setUser(user.number)">
-                      <span class="number">{{ user.number }}<span ng-if="user.notify"> - {{ user.notify }}</span></span>
-                      <p class="time text-right">{{ user.last_timestamp }}</p>
-                    </div>
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div ng-if="messages.length" ng-repeat="message in messages" id="messages-container">
-                     <div class="bubble" ng-class="{ own: message.own }">
-                       <a ng-if="message.url" href="{{ message.url }}" target="_blank">
-                         <img ng-if="message.thumb" ng-src="{{ message.thumb }}" />
-                         <span ng-bind-html="message.text"></span>
-                       </a>
-                       <span ng-if="!message.url">
-                         <img ng-if="message.thumb" ng-src="{{ message.thumb }}" />
-                         <span ng-bind-html="message.text"></span>
-                       </span>
-                       <div style="text-align: right;" class="clearfix">
-                         <p>[<span class="time">{{ message.timestamp*1000 | date:'yyyy/MM/dd HH:mm:ss' }}</span>]</p>
-                       </div>
-                     </div>
-                </div>
-            </div>
-        </div>
+       <div ng-view></div>
 
-    </div>
-
-    <nav class="navbar navbar-fixed-bottom">
-        <div class="container">
-            <div class="panel panel-primary">
-                <div class="panel-body">
-                    <div class="row">
-                        <form id="msg-form" ng-submit="sendMessage()">
-                            <div class="col-lg-2">
-                                <input type="number" string-to-number class="form-control" placeholder="number" name="number" ng-model="number" required="" />
-                            </div>
-                            <div class="col-lg-9">
-                                <input type="text" class="form-control" placeholder="content" name="content" ng-model="content" required="" />
-                            </div>
-                            <div class="col-lg-1">
-                                <button type="submit" class="btn btn-default pull-right"> Send </button>
-                            </div>
-                        </form>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </nav>
+   </div>
 </body>
 </html>

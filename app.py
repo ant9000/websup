@@ -105,15 +105,12 @@ def check_login(username, password):
 
 
 @bottle.route('/')
-@bottle.view('index')
 def index():
     session = bottle.request.environ.get('beaker.session')
     username = session.get('username', None)
     if username is None and bottle.request.remote_addr != '127.0.0.1':
         bottle.redirect('/login')
-    return {
-        'username': username,
-    }
+    return bottle.static_file('index.tpl', root=here('views'))
 
 
 @bottle.route('/login')

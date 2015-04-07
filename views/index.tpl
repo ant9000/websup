@@ -1,8 +1,5 @@
 <!doctype html>
 <html lang="en" ng-app="websup">
-% # Angular.js uses the same syntax as STL for declaring variables,
-% # so we include the template in a safe string
-{{!"""
 <head>
     <meta charset="utf-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -97,5 +94,4 @@
         </div>
     </nav>
 </body>
-"""}}
 </html>

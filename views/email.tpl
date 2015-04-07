@@ -27,7 +27,9 @@ a { text-decoration: none; }
 % if item.url:
 <a href="{{! item.url }}" target="_blank">
 % end
-{{! item.thumb }}
+% if item.thumb:
+<img src="{{! item.thumb }}" />
+% end
 {{! item.text }}
 % if item.url:
 </a>

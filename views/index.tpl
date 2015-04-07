@@ -12,7 +12,8 @@
     <link rel="stylesheet" href="/static/css/style.css">
 
     <script src="/static/js/angular.min.js"></script>
-    <script src="/static/js/angular-route.js"></script>
+    <script src="/static/js/angular-route.min.js"></script>
+    <script src="/static/js/angular-sanitize.min.js"></script>
     <script src="/static/js/ui-bootstrap-tpls-0.12.1.min.js"></script>
 
     <script src="/static/js/jquery-1.11.2.min.js"></script>
@@ -55,15 +56,15 @@
                 <div ng-if="messages.length" ng-repeat="message in messages" id="messages-container">
                      <div class="bubble" ng-class="{ own: message.own }">
                        <a ng-if="message.url" href="{{ message.url }}" target="_blank">
-                         {{ message.thumb }} 
-                         {{ message.text }}
+                         <img ng-if="message.thumb" ng-src="{{ message.thumb }}" />
+                         <span ng-bind-html="message.text"></span>
                        </a>
                        <span ng-if="!message.url">
-                         {{ message.thumb }} 
-                         {{ message.text }}
+                         <img ng-if="message.thumb" ng-src="{{ message.thumb }}" />
+                         <span ng-bind-html="message.text"></span>
                        </span>
                        <div style="text-align: right;" class="clearfix">
-                         <p>[<span class="time">{{ message.timestamp }}</span>]</p>
+                         <p>[<span class="time">{{ message.timestamp*1000 | date:'yyyy/MM/dd HH:mm:ss' }}</span>]</p>
                        </div>
                      </div>
                 </div>

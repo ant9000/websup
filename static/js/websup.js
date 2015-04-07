@@ -4,6 +4,7 @@
 var websup = angular.module('websup', [
   'ngRoute',
   'ui.bootstrap',
+  'ngSanitize'
 ]);
 
 websup.factory('socket', ['$window', '$rootScope', '$interval', '$log', function($window, $rootScope, $interval, $log) {

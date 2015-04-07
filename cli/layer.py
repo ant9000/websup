@@ -103,7 +103,7 @@ class WebsupLayer(YowInterfaceLayer):
                     )
             if thumb:
                 # encode as data-uri
-                thumb = '<img src="data:%s;base64,%s"/>' % (
+                thumb = 'data:%s;base64,%s' % (
                     'image/jpeg',
                     binascii.b2a_base64(thumb).strip(),
                 )

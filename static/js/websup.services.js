@@ -30,6 +30,7 @@ websupServices.factory('socket', ['$window', '$rootScope', '$interval', '$log', 
     }
     ws.onmessage = function(evt){
       var data = JSON.parse(evt.data);
+      $log.log('socket',data)
       $rootScope.$broadcast(data.type, data);
     }
   }

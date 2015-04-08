@@ -175,15 +175,37 @@ class WebsupLayer(YowInterfaceLayer):
     def onIq(self, entity):
         if isinstance(entity, ListGroupsResultIqProtocolEntity):
             logger.info('Group list results:')
-            for group in entity.getGroups():
-                logger.info('- %s' % group)
-                self.group_participants(group.getId())
+            if entity.getGroups():
+                for group in entity.getGroups():
+                    logger.info('- %s' % group)
+                    item = QueueItem(
+                        item_type='group',
+                        content={
+                            'group': group.getId(),
+                            'owner': group.getOwner(),
+                            'created': group.getCreationTime(),
+                            'subject': group.getSubject(),
+                            'subject-owner': group.getSubjectOwner(),
+                            'subject-time': group.getSubjectTime(),
+                        }
+                    )
+                    self.queue.put(item)
+                    self.group_participants(group.getId())
             else:
                 logger.info('- no groups')
         elif isinstance(entity, ListParticipantsResultIqProtocolEntity):
             logger.info('Group %s participants:' % entity.getFrom())
-            for participant in entity.getParticipants():
-                logger.info('- %s' % participant)
+            if entity.getParticipants():
+                item = QueueItem(
+                    item_type='group-participants',
+                    content={
+                        'group': entity.getFrom(),
+                        'participants': entity.getParticipants(),
+                    }
+                )
+                self.queue.put(item)
+                for participant in entity.getParticipants():
+                    logger.info('- %s' % participant)
             else:
                 logger.info('- no participants')
         else:

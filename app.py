@@ -236,19 +236,20 @@ def queue_consumer():
                 # if received via web, push it to Whatsapp
                 if message.get('own',False):
                     stack.send(message['number'], message['text'])
-                # broadcast message to all connected clients
-                if web_clients:
-                    msg = item.asJson()
-                    for conn, user in web_clients.items():
-                        if user:
-                            direction = message.get('own',False) and "to" or "from"
-                            logger.info(
-                                'user "%s", msg %s "%s"',
-                                user, direction, message['number']
-                            )
-                            conn.send(msg)
-            # TODO: manage other message types
-            # ...
+                direction = message.get('own',False) and "to" or "from"
+                logger.info('msg %s "%s"', direction, message['number'])
+            elif item.item_type == 'group':
+                pass
+            elif item.item_type == 'group-participants':
+                pass
+            else:
+                pass
+            # broadcast message to all connected clients
+            if web_clients:
+                msg = item.asJson()
+                for conn, user in web_clients.items():
+                    if user:
+                        conn.send(msg)
             # work done, now we can consume message
             queue.get()
             # TODO: save item to db

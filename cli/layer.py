@@ -125,8 +125,15 @@ class WebsupLayer(YowInterfaceLayer):
             text = myemoji.replace(text)
             notify = myemoji.replace(notify)
             item = QueueItem(
-                timestamp=timestamp, text=text, number=number, url=url,
-                thumb=thumb, notify=notify, data=messageProtocolEntity,
+                item_type='message',
+                content={
+                   'timestamp': timestamp,
+                   'text': text, 
+                   'number': number,
+                   'url': url,
+                   'thumb': thumb,
+                   'notify': notify,
+                }
             )
             self.queue.put(item)
 #           logger.debug(item)

@@ -16,6 +16,7 @@ from cli import myemoji
 from cli.mail import Mailer
 import os
 import json
+import time
 
 
 def here(path):
@@ -187,11 +188,15 @@ def echo(ws):
                             pass
                     elif data['type'] == 'message':
                         item = QueueItem(
-                            text=data['content'],
-                            number=data['number'],
-                            url='',
-                            thumb='',
-                            own=True,
+                            item_type='message',
+                            content={
+                                'timestamp': int(time.time()),
+                                'text': data['content'],
+                                'number': data['number'],
+                                'url': '',
+                                'thumb': '',
+                                'own': True,
+                            }
                         )
                         queue.put(item)
                 except KeyError:
@@ -221,25 +226,29 @@ def queue_consumer():
     while True:
         try:
             item = queue.peek(block=False)
-            # send message via email
-            subj = '[Whatsapp] conversation with %s' % item.number
-            subj = unicode(subj).encode('utf-8')
-            msg = bottle.template('email', item=item).encode('utf-8')
-            mailer.send_email(email_to, subj, msg)
-            # if received via web, push it to Whatsapp
-            if item.own:
-                stack.send(item.number, item.text)
-            # broadcast message to all connected clients
-            if web_clients:
-                msg = {'type': 'whatsapp', 'content': item.asDict()}
-                for conn, user in web_clients.items():
-                    if user:
-                        direction = item.own and "to" or "from"
-                        logger.info(
-                            'user "%s", msg %s "%s"',
-                            user, direction, item.number
-                        )
-                        conn.send(json.dumps(msg))
+            if item.item_type == 'message':
+                message = item.content
+                # send message via email
+                subj = '[Whatsapp] conversation with %s' % message['number']
+                subj = unicode(subj).encode('utf-8')
+                msg = bottle.template('email', message=message).encode('utf-8')
+                mailer.send_email(email_to, subj, msg)
+                # if received via web, push it to Whatsapp
+                if message.get('own',False):
+                    stack.send(message['number'], message['text'])
+                # broadcast message to all connected clients
+                if web_clients:
+                    msg = item.asJson()
+                    for conn, user in web_clients.items():
+                        if user:
+                            direction = message.get('own',False) and "to" or "from"
+                            logger.info(
+                                'user "%s", msg %s "%s"',
+                                user, direction, message['number']
+                            )
+                            conn.send(msg)
+            # TODO: manage other message types
+            # ...
             # work done, now we can consume message
             queue.get()
             # TODO: save item to db

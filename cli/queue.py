@@ -1,37 +1,14 @@
 from gevent.queue import Queue
-from datetime import datetime
-import time
+import json
 
 
 class QueueItem:
-    def __init__(
-        self, timestamp=None, text=None, url=None,
-        thumb=None, number=None, notify=None, data=None,
-        own=False,
-    ):
-        self.timestamp = timestamp or int(time.time())
-        self.datetime = datetime.fromtimestamp(self.timestamp)
-        self.text = text
-        self.url = url
-        self.thumb = thumb
-        self.number = number
-        self.notify = notify
-        self.own = own
-        self.data = data
+    def __init__(self, item_type, content):
+        self.item_type = item_type
+        self.content = content
 
     def __str__(self):
-        out = self.text
-        if self.number:
-            out = '%s: %s' % (self.number, out)
-        return out
+        return '%s: %s' % (self.item_type, self.data) 
 
-    def asDict(self):
-        return {
-            'timestamp': self.timestamp,
-            'number': self.number,
-            'notify': self.notify,
-            'text': self.text,
-            'url': self.url,
-            'thumb': self.thumb,
-            'own': self.own,
-        }
+    def asJson(self):
+        return json.dumps({ 'type': self.item_type, 'content': self.content })

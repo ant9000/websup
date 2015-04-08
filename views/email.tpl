@@ -14,24 +14,28 @@ a { text-decoration: none; }
 </style>
 </head>
 <body>
+<%
+from datetime import datetime
+timestamp = datetime.fromtimestamp(message['timestamp'])
+%> 
 <p>
-  [<span class="time">{{ item.datetime }}</span>]
+  [<span class="time">{{ timestamp }}</span>]
   <span class="number">
-    {{! item.number }}
-% if item.notify:
-    - {{! item.notify }}
+    {{! message['number'] }}
+% if message.get('notify'):
+    - {{! message['notify'] }}
 % end
   </span>
 </p>
 <hr />
-% if item.url:
-<a href="{{! item.url }}" target="_blank">
+% if message.get('url'):
+<a href="{{! message['url'] }}" target="_blank">
 % end
-% if item.thumb:
-<img src="{{! item.thumb }}" />
+% if message.get('thumb'):
+<img src="{{! message['thumb'] }}" />
 % end
-{{! item.text }}
-% if item.url:
+{{! message['text'] }}
+% if message.get('url'):
 </a>
 % end
 </body>

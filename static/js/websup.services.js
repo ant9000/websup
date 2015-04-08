@@ -29,7 +29,8 @@ websupServices.factory('socket', ['$window', '$rootScope', '$interval', '$log', 
       ws = null;
     }
     ws.onmessage = function(evt){
-      $rootScope.$broadcast('message', evt);
+      var data = JSON.parse(evt.data);
+      $rootScope.$broadcast(data.type, data);
     }
   }
   function checkConnection(){

@@ -24,7 +24,6 @@
     <script src="/static/js/websup.controllers.js"></script>
 </head>
 <body ng-controller="MainCtrl">
-
     <div class="container">
         <div class="panel panel-primary">
             <div class="panel-heading">
@@ -45,7 +44,6 @@
         </div>
 
        <div ng-view></div>
-
    </div>
 </body>
 </html>

@@ -19,41 +19,25 @@ from yowsup.layers.protocol_media.protocolentities \
     import ImageDownloadableMediaMessageProtocolEntity as ImageMediaEntity
 
 
-class MyYowMediaProtocolLayer(YowMediaProtocolLayer):
-    def __str__(self):
-        return "My Media Layer"
-
-    def recvMessageStanza(self, node):
-        if node.getAttributeValue("type") == "media":
-            mediaNode = node.getChild("media")
-            if mediaNode.getAttributeValue("type") == "video":
-                entity = ImageMediaEntity.fromProtocolTreeNode(node)
-                self.toUpper(entity)
-            elif mediaNode.getAttributeValue("type") == "audio":
-                entity = DownloadableMediaEntity.fromProtocolTreeNode(node)
-                self.toUpper(entity)
-            else:
-                return YowMediaProtocolLayer.recvMessageStanza(self, node)
-
-
-class MyStackBuilder(YowStackBuilder):
-    @staticmethod
-    def getProtocolLayers(groups=True, media=True, privacy=True):
-        layers = YowStackBuilder.getProtocolLayers(groups, media, privacy)
-        if media:
-            replaced = []
-            for layer in layers:
-                if layer == YowMediaProtocolLayer:
-                    layer = MyYowMediaProtocolLayer
-                replaced.push(layer)
-            layers = replaced
-        return layers
+recvMessageStanzaOriginal = YowMediaProtocolLayer.recvMessageStanza
+def recvMessageStanza(self, node):
+   if node.getAttributeValue("type") == "media":
+       mediaNode = node.getChild("media")
+       if mediaNode.getAttributeValue("type") == "video":
+           entity = ImageMediaEntity.fromProtocolTreeNode(node)
+           self.toUpper(entity)
+       elif mediaNode.getAttributeValue("type") == "audio":
+           entity = DownloadableMediaEntity.fromProtocolTreeNode(node)
+           self.toUpper(entity)
+       else:
+           return recvMessageStanzaOriginal(self, node)
+YowMediaProtocolLayer.recvMessageStanza = recvMessageStanza
 # end patch
 
 
 class WebsupStack(object):
     def __init__(self, credentials, encryptionEnabled=False):
-        stackBuilder = MyStackBuilder()
+        stackBuilder = YowStackBuilder()
 
         if not encryptionEnabled:
             env.CURRENT_ENV = S40YowsupEnv()
@@ -62,7 +46,6 @@ class WebsupStack(object):
             .pushDefaultLayers(encryptionEnabled)\
             .push(WebsupLayer)\
             .build()
-
         self.stack.setCredentials(credentials)
 
     def start(self, queue):

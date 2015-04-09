@@ -53,7 +53,7 @@ class WebsupLayer(YowInterfaceLayer):
             self.message_send(number, content)
             return True
         elif name == YowNetworkLayer.EVENT_STATE_CONNECTED:
-            pass
+            logger.info("Connected")
         elif name == YowNetworkLayer.EVENT_STATE_DISCONNECTED:
             logger.warning("Disconnected: %s", layerEvent.getArg('reason'))
 
@@ -181,7 +181,7 @@ class WebsupLayer(YowInterfaceLayer):
                     item = QueueItem(
                         item_type='group',
                         content={
-                            'group': group.getId(),
+                            'id': group.getId(),
                             'owner': group.getOwner(),
                             'created': group.getCreationTime(),
                             'subject': group.getSubject(),
@@ -197,9 +197,9 @@ class WebsupLayer(YowInterfaceLayer):
             logger.info('Group %s participants:' % entity.getFrom())
             if entity.getParticipants():
                 item = QueueItem(
-                    item_type='group-participants',
+                    item_type='group',
                     content={
-                        'group': entity.getFrom(),
+                        'id': entity.getFrom(),
                         'participants': entity.getParticipants(),
                     }
                 )
@@ -219,6 +219,16 @@ class WebsupLayer(YowInterfaceLayer):
                     entity.getFrom(), entity.getSubject()
                 )
             )
+            item = QueueItem(
+                item_type='group',
+                content={
+                    'id': group.getId(),
+                    'subject': group.getSubject(),
+                    'subject-owner': group.getSubjectOwner(),
+                    'subject-time': group.getSubjectTime(),
+                }
+            )
+            self.queue.put(item)
         elif isinstance(entity, StatusNotificationProtocolEntity):
             logger.info(
                 'Status %s for "%s" %s' % (

@@ -173,6 +173,7 @@ def echo(ws):
                             'type': 'session',
                             'content': 'connected',
                             'username': username,
+                            'phone':   phone,
                         }
                         ws.send(json.dumps(res))
                         if data['msg'] == 'connected':
@@ -239,8 +240,6 @@ def queue_consumer():
                 direction = message.get('own',False) and "to" or "from"
                 logger.info('msg %s "%s"', direction, message['number'])
             elif item.item_type == 'group':
-                pass
-            elif item.item_type == 'group-participants':
                 pass
             else:
                 pass

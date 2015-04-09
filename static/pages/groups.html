@@ -1,0 +1,18 @@
+<div ng-controller="GroupsCtrl">
+
+    <div class="row">
+        <div class="col-md-4">
+            <div class="list-group">
+                <div ng-repeat="group in groups | orderBy:'subject'"
+                     class="group list-group-item" ng-class="{ active: group.id == current_group }"
+                     ng-click="setGroup(group.id)">
+                  {{ group.id }} - {{ group.subject }}
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div ng-if="participants.length" ng-repeat="participant in participants">{{ participant }}</div>
+        </div>
+    </div>
+
+</div>

@@ -14,6 +14,10 @@ websup.config(['$routeProvider', function($routeProvider) {
       templateUrl: '/static/pages/messages.html',
       controller: 'MessagesCtrl'
     }).
+    when('/groups', {
+      templateUrl: '/static/pages/groups.html',
+      controller: 'GroupsCtrl'
+    }).
     otherwise({
       redirectTo: '/messages'
     });

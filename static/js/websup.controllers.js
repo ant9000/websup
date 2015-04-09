@@ -2,7 +2,8 @@
 
 var websupControllers = angular.module('websupControllers', []);
 
-websupControllers.controller('MainCtrl', ['$scope', 'socket', '$log', '$window', function($scope,socket,$log,$window){
+websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log', '$window', function($scope,$location,socket,$log,$window){
+  $scope.$location = $location;
   $scope.username = null;
   $scope.$on('connection',function(evt,state){
     $log.log(state);
@@ -12,6 +13,7 @@ websupControllers.controller('MainCtrl', ['$scope', 'socket', '$log', '$window',
     $log.log('MainCtrl',data);
     if(data.content=='connected'){
       $scope.username = data.username;
+      $scope.phone = data.phone;
     }else if(data.content=='not authenticated'){
       $window.location = '/login';
     } 
@@ -30,7 +32,7 @@ websupControllers.controller('MessagesCtrl', ['$scope', 'socket', '$log', functi
     var message = data.content;
     $scope.current_user = message.number;
 //  $log.log($scope.current_user);
-    if($scope.users[$scope.current_user] == undefined){
+    if(!angular.isDefined($scope.users[$scope.current_user])){
       $scope.users[$scope.current_user] = { 
         number: message.number,
         notify: message.notify,
@@ -49,5 +51,25 @@ websupControllers.controller('MessagesCtrl', ['$scope', 'socket', '$log', functi
   $scope.sendMessage = function(){
     socket.send($scope.number,$scope.content);
     $scope.content = '';
+  }
+}]);
+
+websupControllers.controller('GroupsCtrl', ['$scope', 'socket', '$log', function($scope,socket,$log){
+  $scope.current_group = null;
+  $scope.groups = {};
+  $scope.participants = [];
+  $scope.$on('group',function(evt,data){
+    $log.log('GroupsCtrl',data);
+    var group = data.content;
+    if(!angular.isDefined($scope.groups[group.id])){
+      $scope.groups[group.id] = { group_id: group.id };
+    }
+    angular.extend($scope.groups[group.id],group);
+  });
+  $scope.setGroup = function(group_id){
+    if(angular.isDefined($scope.groups[group_id])){
+      $scope.current_group = group_id;
+      $scope.participants = $scope.groups[group_id].participants || [];
+    }
   }
 }]);

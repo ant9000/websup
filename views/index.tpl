@@ -29,13 +29,22 @@
             <div class="panel-heading">
                 <div class="panel-title {{ connection_state }}" id="connection">
                     <h3>Websup!</h3>
+                    <div>
+                      <img ng-if="photo" ng-src="photo" />
+                      <span ng-if="chat_name">{{ chat_name }}</span>
+                      <span ng-if="status">{{ status }}</span>
+                    </div>
                 </div>
             </div>
             <div ng-if="username" class="panel-body">
                 Welcome, <b>{{ username }}</b>.
             </div>
-            <div ng-if="username && username.substr(0,9)!='anonymous'" class="panel-footer">
-                Click to <span><a href="/logout">logout</a>.
+            <div class="panel-footer">
+               [
+                 <a href="#/messages" class="menu" ng-class="{ active: $location.path() == '/messages' }">messages</a> |
+                 <a href="#/groups"   class="menu" ng-class="{ active: $location.path() == '/groups' }">groups</a>
+               ]
+               <span ng-if="username && username.substr(0,9)!='anonymous'">Click to <a href="/logout">logout</a></span>
             </div>
         </div>
 

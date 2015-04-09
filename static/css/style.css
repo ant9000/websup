@@ -64,3 +64,5 @@ body > .container { padding-bottom: 90px; }
   box-shadow: none;
 }
 .btn .emoji { width: 16px; height: 16px; }
+
+.panel-footer a.menu.active { font-weight: bold; }

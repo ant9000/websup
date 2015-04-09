@@ -65,6 +65,7 @@ websupControllers.controller('GroupsCtrl', ['$scope', 'socket', '$log', function
       $scope.groups[group.id] = { group_id: group.id };
     }
     angular.extend($scope.groups[group.id],group);
+    if(group.id == $scope.current_group || group.id){ $scope.setGroup(group.id); }
   });
   $scope.setGroup = function(group_id){
     if(angular.isDefined($scope.groups[group_id])){

@@ -40,6 +40,12 @@ class WebsupLayer(YowInterfaceLayer):
         YowInterfaceLayer.__init__(self)
         self.queue = None
 
+    def normalizeJid(self, number):
+        if '@' in number:   
+            return number
+        elif "-" in number: 
+            return "%s@g.us" % number
+
     def onEvent(self, layerEvent):
         name = layerEvent.getName()
         logger.info("Event %s", name)
@@ -181,7 +187,7 @@ class WebsupLayer(YowInterfaceLayer):
                     item = QueueItem(
                         item_type='group',
                         content={
-                            'id': group.getId(),
+                            'id': self.normalizeJid(group.getId()),
                             'owner': group.getOwner(),
                             'created': group.getCreationTime(),
                             'subject': group.getSubject(),
@@ -222,7 +228,7 @@ class WebsupLayer(YowInterfaceLayer):
             item = QueueItem(
                 item_type='group',
                 content={
-                    'id': group.getId(),
+                    'id': group.getFrom(),
                     'subject': group.getSubject(),
                     'subject-owner': group.getSubjectOwner(),
                     'subject-time': group.getSubjectTime(),

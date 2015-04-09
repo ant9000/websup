@@ -225,38 +225,38 @@ def yowsup():
 
 def queue_consumer():
     while True:
-        try:
-            item = queue.peek(block=False)
-            if item.item_type == 'message':
-                message = item.content
-                # send message via email
-                subj = '[Whatsapp] conversation with %s' % message['number']
-                subj = unicode(subj).encode('utf-8')
-                msg = bottle.template('email', message=message).encode('utf-8')
-                mailer.send_email(email_to, subj, msg)
-                # if received via web, push it to Whatsapp
-                if message.get('own',False):
-                    stack.send(message['number'], message['text'])
-                direction = message.get('own',False) and "to" or "from"
-                logger.info('msg %s "%s"', direction, message['number'])
-            elif item.item_type == 'group':
-                pass
-            else:
-                pass
-            # broadcast message to all connected clients
-            if web_clients:
-                msg = item.asJson()
-                for conn, user in web_clients.items():
-                    if user:
-                        conn.send(msg)
-            # work done, now we can consume message
-            queue.get()
-            # TODO: save item to db
-            pass
-        except gevent.queue.Empty:
-            pass
-        except WebSocketError, e:
-            logger.error(e)
+        if web_clients:
+          try:
+              item = queue.peek(block=False)
+              if item.item_type == 'message':
+                  message = item.content
+                  # send message via email
+                  subj = '[Whatsapp] conversation with %s' % message['number']
+                  subj = unicode(subj).encode('utf-8')
+                  msg = bottle.template('email', message=message).encode('utf-8')
+                  mailer.send_email(email_to, subj, msg)
+                  # if received via web, push it to Whatsapp
+                  if message.get('own',False):
+                      stack.send(message['number'], message['text'])
+                  direction = message.get('own',False) and "to" or "from"
+                  logger.info('msg %s "%s"', direction, message['number'])
+              elif item.item_type == 'group':
+                  pass
+              else:
+                  pass
+              # broadcast message to all connected clients
+              msg = item.asJson()
+              for conn, user in web_clients.items():
+                  if user:
+                      conn.send(msg)
+              # work done, now we can consume message
+              queue.get()
+              # TODO: save item to db
+              pass
+          except gevent.queue.Empty:
+              pass
+          except WebSocketError, e:
+              logger.error(e)
         gevent.sleep(0.5)
 
 

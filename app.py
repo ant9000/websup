@@ -193,7 +193,7 @@ def echo(ws):
                             content={
                                 'timestamp': int(time.time()),
                                 'content': data['content'],
-                                'number': data['number'],
+                                'to': data['to'],
                                 'url': '',
                                 'thumb': '',
                                 'own': True,
@@ -235,13 +235,13 @@ def queue_consumer():
                 item = queue.peek(block=False)
                 if item.item_type == 'message':
                     msg = item.content
+                    direction = msg.get('own', False) and "to" or "from"
                     # send message via email
-                    subj = '[Whatsapp] conversation with %s' % msg['number']
+                    subj = '[Whatsapp] conversation with %s' % msg[direction]
                     subj = unicode(subj).encode('utf-8')
                     body = bottle.template('email', message=msg).encode('utf8')
                     mailer.send_email(email_to, subj, body)
-                    direction = msg.get('own', False) and "to" or "from"
-                    logger.info('msg %s "%s"', direction, msg['number'])
+                    logger.info('msg %s "%s"', direction, msg[direction])
                 elif item.item_type == 'group':
                     pass
                 else:

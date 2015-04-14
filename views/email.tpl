@@ -21,7 +21,7 @@ timestamp = datetime.fromtimestamp(message['timestamp'])
 <p>
   [<span class="time">{{ timestamp }}</span>]
   <span class="number">
-    {{! message['number'] }}
+    {{! message[message.get('own',False) and 'to' or 'from'] }}
 % if message.get('notify'):
     - {{! message['notify'] }}
 % end

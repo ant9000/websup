@@ -22,34 +22,35 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
 }]);
 
 websupControllers.controller('MessagesCtrl', ['$scope', 'socket', '$log', function($scope,socket,$log){
-  $scope.current_user = null;
-  $scope.users = {};
+  $scope.current_conversation = null;
+  $scope.conversations = {};
   $scope.messages = [];
-  $scope.number = '';
+  $scope.to = '';
   $scope.content = '';
   $scope.$on('message',function(evt,data){
     $log.log('MessagesCtrl',data);
     var message = data.content;
-    $scope.current_user = message.number;
-//  $log.log($scope.current_user);
-    if(!angular.isDefined($scope.users[$scope.current_user])){
-      $scope.users[$scope.current_user] = { 
-        number: message.number,
+    var number = message.own? message.to : message.from;
+    $scope.current_conversation = number;
+//  $log.log($scope.current_conversation);
+    if(!angular.isDefined($scope.conversations[$scope.current_conversation])){
+      $scope.conversations[$scope.current_conversation] = { 
+        number: number,
         notify: message.notify,
         messages: []
       };
     }
-    $scope.users[$scope.current_user]['last_timestamp'] = message.timestamp;
-    $scope.users[$scope.current_user]['messages'].push(message);
-    $scope.messages = $scope.users[$scope.current_user]['messages'];
+    $scope.conversations[$scope.current_conversation]['last_timestamp'] = message.timestamp;
+    $scope.conversations[$scope.current_conversation]['messages'].push(message);
+    $scope.messages = $scope.conversations[$scope.current_conversation]['messages'];
   });
-  $scope.setUser = function(number){
-    $scope.current_user = number;
-    $scope.messages = $scope.users[$scope.current_user]['messages'];
-    $scope.number = number;
+  $scope.setConversation = function(number){
+    $scope.current_conversation = number;
+    $scope.messages = $scope.conversations[$scope.current_conversation]['messages'];
+    $scope.to = number;
   }
   $scope.sendMessage = function(){
-    socket.send({ type: 'message', 'number': $scope.number, 'content': $scope.content });
+    socket.send({ type: 'message', 'to': $scope.to, 'content': $scope.content });
     $scope.content = '';
   }
 }]);

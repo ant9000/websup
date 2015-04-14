@@ -56,7 +56,7 @@ class WebsupLayer(YowInterfaceLayer):
         elif name == self.__class__.EVENT_DISPATCH:
             item = layerEvent.getArg('item')
             if item.item_type == 'message':
-                number = item.content['number']
+                number = item.content['to']
                 content = item.content['content']
                 self.message_send(number, content)
             elif item.item_type == 'group':
@@ -78,17 +78,17 @@ class WebsupLayer(YowInterfaceLayer):
             logger.warning("Disconnected: %s", layerEvent.getArg('reason'))
 
     @ProtocolEntityCallback("message")
-    def onMessage(self, messageProtocolEntity):
+    def onMessage(self, entity):
         logger.info(
             "Message %s: %s %s - type %s",
-            messageProtocolEntity.getId(),
-            messageProtocolEntity.getFrom(),
-            messageProtocolEntity.getNotify(),
-            messageProtocolEntity.getType()
+            entity.getId(),
+            entity.getFrom(),
+            entity.getNotify(),
+            entity.getType()
         )
         receipt = OutgoingReceiptProtocolEntity(
-            messageProtocolEntity.getId(),
-            messageProtocolEntity.getFrom(),
+            entity.getId(),
+            entity.getFrom(),
         )
         # send receipt otherwise we keep receiving the same message
         # over and over
@@ -97,29 +97,29 @@ class WebsupLayer(YowInterfaceLayer):
         text = ''
         url = ''
         thumb = ''
-        if messageProtocolEntity.getType() == 'text':
-            text = myemoji.escape(messageProtocolEntity.getBody() or '')
-        elif messageProtocolEntity.getType() == 'media':
-            url = messageProtocolEntity.url
-            thumb = messageProtocolEntity.getPreview() or ''
-            media_type = messageProtocolEntity.getMediaType()
+        if entity.getType() == 'text':
+            text = myemoji.escape(entity.getBody() or '')
+        elif entity.getType() == 'media':
+            url = entity.url
+            thumb = entity.getPreview() or ''
+            media_type = entity.getMediaType()
             if media_type in ["image", "video"]:
-                text = myemoji.escape(messageProtocolEntity.getCaption() or '')
+                text = myemoji.escape(entity.getCaption() or '')
             elif media_type == "audio":
                 text = ''  # audio has no caption
             elif media_type == "location":
                 text = myemoji.escape(
-                    messageProtocolEntity.getLocationName() or ''
+                    entity.getLocationName() or ''
                 )
                 if not text:
                     text = "Location: (%s,%s)" % (
-                        messageProtocolEntity.getLatitude(),
-                        messageProtocolEntity.getLongitude(),
+                        entity.getLatitude(),
+                        entity.getLongitude(),
                     )
                 if not url:
                     url = 'http://www.osm.org/#map=16/%s/%s' % (
-                        messageProtocolEntity.getLatitude(),
-                        messageProtocolEntity.getLongitude(),
+                        entity.getLatitude(),
+                        entity.getLongitude(),
                     )
             if thumb:
                 # encode as data-uri
@@ -130,29 +130,26 @@ class WebsupLayer(YowInterfaceLayer):
             if not (text or thumb):
                 text = '%s message [%s]' % (
                     media_type,
-                    messageProtocolEntity.getMimeType(),
+                    entity.getMimeType(),
                 )
 
         if text or url:
-            timestamp = messageProtocolEntity.getTimestamp()
-            if messageProtocolEntity.isGroupMessage():
-                number = messageProtocolEntity.getParticipant(full=False)
-            else:
-                number = messageProtocolEntity.getFrom(full=False)
-            notify = myemoji.escape(messageProtocolEntity.getNotify())
-            if notify == number:
-                notify = ''
-            text = myemoji.replace(text)
+            notify = myemoji.escape(entity.getNotify())
             notify = myemoji.replace(notify)
+            text = myemoji.replace(text)
             item = QueueItem(
                 item_type='message',
                 content={
-                   'timestamp': timestamp,
+                   'id': entity.getId(),
+                   'timestamp': entity.getTimestamp(),
+                   'from': entity.getFrom(full=True),
+                   'to': entity.getTo(full=True),
                    'content': text,
-                   'number': number,
                    'url': url,
                    'thumb': thumb,
                    'notify': notify,
+                   'is_group': entity.isGroupMessage(),
+                   'participant': entity.getParticipant(full=True) or '',
                 }
             )
             self.queue.put(item)
@@ -166,7 +163,7 @@ class WebsupLayer(YowInterfaceLayer):
     def message_send(self, number, content):
         logger.info('Sending message to %s: %s' % (number, content))
         outgoingMessage = TextMessageProtocolEntity(
-            content.encode('utf-8'), to="%s@s.whatsapp.net" % number
+            content.encode('utf-8'), to=self.normalizeJid(number)
         )
         self.toLower(outgoingMessage)
 

@@ -6,7 +6,7 @@
                 <div ng-repeat="conversation in conversations | orderBy:'-last_timestamp'"
                      class="conversation list-group-item" ng-class="{ active: conversation.number == current_conversation }"
                      ng-click="setConversation(conversation.number)">
-                  <span class="number">{{ conversation.display || conversation.number }}</span></span>
+                  <span class="number">{{ conversation.display || conversation.number|cutDomain }}</span></span>
                   <p class="time text-right">{{ conversation.last_timestamp*1000 | date:'yyyy/MM/dd HH:mm:ss' }}</p>
                 </div>
             </div>
@@ -14,7 +14,7 @@
         <div class="col-md-4">
             <div ng-if="messages.length" ng-repeat="message in messages" id="messages-container">
                  <div class="bubble" ng-class="{ own: message.own }">
-                   <div ng-if="message.participant && !message.own" class="participant">{{ message.notify || message.participant }}</span></div>
+                   <div ng-if="message.participant && !message.own" class="participant">{{ message.notify || message.participant|cutDomain }}</span></div>
                    <a ng-if="message.url" href="{{ message.url }}" target="_blank">
                      <img ng-if="message.thumb" ng-src="{{ message.thumb }}" />
                      <span ng-bind-html="message.content"></span>
@@ -38,7 +38,7 @@
                     <div class="row">
                         <form id="msg-form" ng-submit="sendMessage()">
                             <div class="col-lg-2">
-                                <input type="text" class="form-control" placeholder="to" ng-model="to" required="" />
+                                <input type="text" class="form-control" placeholder="to" ng-model="to" ngValue="to|cutDomain" required="" />
                             </div>
                             <div class="col-lg-9">
                                 <input type="text" class="form-control" placeholder="content" ng-model="content" required="" />

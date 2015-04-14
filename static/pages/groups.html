@@ -6,12 +6,12 @@
                 <div ng-repeat="group in groups | orderBy:'subject'"
                      class="group list-group-item" ng-class="{ active: group.id == current_group }"
                      ng-click="setGroup(group.id)">
-                  {{ group.id }} - {{ group.subject }}
+                  {{ group.subject || group.id|cutDomain }}
                 </div>
             </div>
         </div>
         <div class="col-md-4">
-            <div ng-if="participants.length" ng-repeat="participant in participants">{{ participant }}</div>
+            <div ng-if="participants.length" ng-repeat="participant in participants">{{ participant|cutDomain }}</div>
         </div>
     </div>
 

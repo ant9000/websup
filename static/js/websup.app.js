@@ -22,3 +22,9 @@ websup.config(['$routeProvider', function($routeProvider) {
       redirectTo: '/messages'
     });
 }]);
+
+websup.filter('cutDomain',function(){
+  return function(input){
+     return (input || '').replace(/@.*/,'');
+  }
+});

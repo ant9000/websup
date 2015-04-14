@@ -46,10 +46,10 @@ websupControllers.controller('MessagesCtrl', ['$scope', 'socket', '$log', functi
   $scope.setUser = function(number){
     $scope.current_user = number;
     $scope.messages = $scope.users[$scope.current_user]['messages'];
-    $scope.number = parseInt(number);
+    $scope.number = number;
   }
   $scope.sendMessage = function(){
-    socket.send($scope.number,$scope.content);
+    socket.send({ type: 'message', 'number': $scope.number, 'content': $scope.content });
     $scope.content = '';
   }
 }]);
@@ -73,4 +73,5 @@ websupControllers.controller('GroupsCtrl', ['$scope', 'socket', '$log', function
       $scope.participants = $scope.groups[group_id].participants || [];
     }
   }
+  socket.send({ type: 'group', 'command': 'groups-list' });
 }]);

@@ -34,7 +34,7 @@ timestamp = datetime.fromtimestamp(message['timestamp'])
 % if message.get('thumb'):
 <img src="{{! message['thumb'] }}" />
 % end
-{{! message['text'] }}
+{{! message['content'] }}
 % if message.get('url'):
 </a>
 % end

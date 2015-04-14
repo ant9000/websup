@@ -34,16 +34,16 @@ logger = logging.getLogger(__name__)
 
 class WebsupLayer(YowInterfaceLayer):
     EVENT_START = "org.openwhatsapp.yowsup.event.cli.start"
-    EVENT_SEND = "org.openwhatsapp.yowsup.event.cli.send"
+    EVENT_DISPATCH = "org.openwhatsapp.yowsup.event.cli.dispatch"
 
     def __init__(self):
         YowInterfaceLayer.__init__(self)
         self.queue = None
 
     def normalizeJid(self, number):
-        if '@' in number:   
+        if '@' in number:
             return number
-        elif "-" in number: 
+        elif "-" in number:
             return "%s@g.us" % number
 
     def onEvent(self, layerEvent):
@@ -53,10 +53,24 @@ class WebsupLayer(YowInterfaceLayer):
             self.queue = layerEvent.getArg('queue')
             logger.info("Started.")
             return True
-        elif name == self.__class__.EVENT_SEND:
-            number = layerEvent.getArg('number')
-            content = layerEvent.getArg('content')
-            self.message_send(number, content)
+        elif name == self.__class__.EVENT_DISPATCH:
+            item = layerEvent.getArg('item')
+            if item.item_type == 'message':
+                number = item.content['number']
+                content = item.content['content']
+                self.message_send(number, content)
+            elif item.item_type == 'group':
+                data = item.content
+                if data['command'] == 'groups-list':
+                    self.groups_list()
+                elif data['command'] == 'group-participants':
+                    if data.get('group_id',None):
+                        self.group_participants(data['group_id'])
+                # group-create
+                # group-subject
+                # group-participant-add
+                # group-participant-del
+                # group-destroy
             return True
         elif name == YowNetworkLayer.EVENT_STATE_CONNECTED:
             logger.info("Connected")
@@ -134,7 +148,7 @@ class WebsupLayer(YowInterfaceLayer):
                 item_type='message',
                 content={
                    'timestamp': timestamp,
-                   'text': text, 
+                   'content': text,
                    'number': number,
                    'url': url,
                    'thumb': thumb,
@@ -170,7 +184,6 @@ class WebsupLayer(YowInterfaceLayer):
     def onSuccess(self, entity):
         self.connected = True
         logger.info("Logged in!")
-        self.groups_list()
 
     @ProtocolEntityCallback("failure")
     def onFailure(self, entity):

@@ -16,11 +16,11 @@
                  <div class="bubble" ng-class="{ own: message.own }">
                    <a ng-if="message.url" href="{{ message.url }}" target="_blank">
                      <img ng-if="message.thumb" ng-src="{{ message.thumb }}" />
-                     <span ng-bind-html="message.text"></span>
+                     <span ng-bind-html="message.content"></span>
                    </a>
                    <span ng-if="!message.url">
                      <img ng-if="message.thumb" ng-src="{{ message.thumb }}" />
-                     <span ng-bind-html="message.text"></span>
+                     <span ng-bind-html="message.content"></span>
                    </span>
                    <div style="text-align: right;" class="clearfix">
                      <p>[<span class="time">{{ message.timestamp*1000 | date:'yyyy/MM/dd HH:mm:ss' }}</span>]</p>
@@ -37,7 +37,7 @@
                     <div class="row">
                         <form id="msg-form" ng-submit="sendMessage()">
                             <div class="col-lg-2">
-                                <input type="number" string-to-number class="form-control" placeholder="number" name="number" ng-model="number" required="" />
+                                <input type="text" class="form-control" placeholder="number" name="number" ng-model="number" required="" />
                             </div>
                             <div class="col-lg-9">
                                 <input type="text" class="form-control" placeholder="content" name="content" ng-model="content" required="" />

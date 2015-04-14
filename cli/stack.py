@@ -17,20 +17,20 @@ from yowsup.layers.protocol_media.protocolentities \
     import DownloadableMediaMessageProtocolEntity as DownloadableMediaEntity
 from yowsup.layers.protocol_media.protocolentities \
     import ImageDownloadableMediaMessageProtocolEntity as ImageMediaEntity
-
-
 recvMessageStanzaOriginal = YowMediaProtocolLayer.recvMessageStanza
+
+
 def recvMessageStanza(self, node):
-   if node.getAttributeValue("type") == "media":
-       mediaNode = node.getChild("media")
-       if mediaNode.getAttributeValue("type") == "video":
-           entity = ImageMediaEntity.fromProtocolTreeNode(node)
-           self.toUpper(entity)
-       elif mediaNode.getAttributeValue("type") == "audio":
-           entity = DownloadableMediaEntity.fromProtocolTreeNode(node)
-           self.toUpper(entity)
-       else:
-           return recvMessageStanzaOriginal(self, node)
+    if node.getAttributeValue("type") == "media":
+        mediaNode = node.getChild("media")
+        if mediaNode.getAttributeValue("type") == "video":
+            entity = ImageMediaEntity.fromProtocolTreeNode(node)
+            self.toUpper(entity)
+        elif mediaNode.getAttributeValue("type") == "audio":
+            entity = DownloadableMediaEntity.fromProtocolTreeNode(node)
+            self.toUpper(entity)
+        else:
+            return recvMessageStanzaOriginal(self, node)
 YowMediaProtocolLayer.recvMessageStanza = recvMessageStanza
 # end patch
 
@@ -68,9 +68,7 @@ class WebsupStack(object):
             print "Exit."
             sys.exit(0)
 
-    def send(self, number, content):
+    def dispatch(self, item):
         self.stack.broadcastEvent(
-            YowLayerEvent(
-                WebsupLayer.EVENT_SEND, number=number, content=content
-            )
+            YowLayerEvent(WebsupLayer.EVENT_DISPATCH, item=item)
         )

@@ -43,8 +43,8 @@ websupServices.factory('socket', ['$window', '$rootScope', '$interval', '$log', 
        $interval(checkConnection,1000); 
        connect();
      },
-     send: function(number, content){
-       ws.send(JSON.stringify({ type: 'message', number: number, content: content }));
+     send: function(data){
+       ws.send(JSON.stringify(data));
      }
   }
 }]);

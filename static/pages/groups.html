@@ -6,13 +6,49 @@
                 <div ng-repeat="group in groups | orderBy:'subject'"
                      class="group list-group-item" ng-class="{ active: group.id == current_group }"
                      ng-click="setGroup(group.id)">
-                  {{ group.subject || group.id|cutDomain }}
+                  <strong>{{ group.subject || group.id|cutDomain }}</strong>
+                  <div class="pull-right btn-group btn-group-xs" role="group" aria-label="Actions">
+                     <button type="button" class="btn btn-default">
+                       <span class="glyphicon glyphicon-comment" aria-hidden="true" title="Send message"></span>
+                     </button>
+                     <button type="button" class="btn btn-default">
+                       <span class="glyphicon glyphicon-edit" aria-hidden="true" title="Edit subject"></span>
+                     </button>
+                     <button type="button" class="btn btn-default">
+                       <span class="glyphicon glyphicon-plus" aria-hidden="true" title="Add participants"></span>
+                     </button>
+                  </div>
+                  <div class="clearfix"></div>
                 </div>
             </div>
         </div>
+
         <div class="col-md-4">
-            <div ng-if="participants.length" ng-repeat="participant in participants">{{ participant|cutDomain }}</div>
+            <div class="list-group">
+              <div ng-if="participants.length" ng-repeat="participant in participants" class="group list-group-item">
+                 {{ participant|cutDomain }}
+                 <div class="pull-right btn-group btn-group-xs" role="group" aria-label="Actions">
+                    <button type="button" class="btn btn-default">
+                      <span class="glyphicon glyphicon-comment" aria-hidden="true" title="Send message"></span>
+                    </button>
+                    <button type="button" class="btn btn-default">
+                      <span class="glyphicon glyphicon-minus" aria-hidden="true" title="Delete"></span>
+                    </button>
+                 </div>
+                 <div class="clearfix"></div>
+              </div>
+            </div>
         </div>
+
+       <div class="col-md-4">
+          <div class="pull-right btn-group" role="group" aria-label="Actions">
+             <button type="button" class="btn btn-primary">
+               <span class="glyphicon glyphicon-plus" aria-hidden="true"></span>
+               Add group
+             </button>
+          </div>
+          <div class="clearfix"></div>
+       </div>
     </div>
 
 </div>

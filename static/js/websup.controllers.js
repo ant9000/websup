@@ -65,6 +65,7 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
       $scope.conversations.push({ 
         number: number,
         display: display,
+        is_group: message.is_group,
         messages: []
       });
     }

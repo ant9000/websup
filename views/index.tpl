@@ -40,11 +40,14 @@
                 Welcome, <b>{{ username }}</b>.
             </div>
             <div class="panel-footer">
-               [
-                 <a href="#/messages" class="menu" ng-class="{ active: $location.path() == '/messages' }">messages</a> |
-                 <a href="#/groups"   class="menu" ng-class="{ active: $location.path() == '/groups' }">groups</a>
-               ]
-               <span ng-if="username && username.substr(0,9)!='anonymous'">Click to <a href="/logout">logout</a></span>
+               <div class="btn-group btn-group-sm" role="group">
+                 <a href="#/messages" class="btn" role="button" ng-class="$location.path()=='/messages'?'btn-primary':'btn-default'">messages</a>
+                 <a href="#/groups"   class="btn" role="button" ng-class="$location.path()=='/groups'?'btn-primary':'btn-default'">groups</a>
+               </div>
+               <div class="pull-right" ng-if="username && username.substr(0,9)!='anonymous'">
+                 Click to <a href="/logout">logout</a>
+               </div>
+               <div class="clearfix"></div>
             </div>
         </div>
 

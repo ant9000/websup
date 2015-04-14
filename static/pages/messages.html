@@ -6,7 +6,8 @@
                 <div ng-repeat="conversation in conversations | orderBy:'-last_timestamp'"
                      class="conversation list-group-item" ng-class="{ active: conversation.number == current_conversation }"
                      ng-click="setConversation(conversation.number)">
-                  <span class="number">{{ conversation.display || conversation.number|cutDomain }}</span></span>
+                  <span class="glyphicon" ng-class="conversation.is_group?'glyphicon-th-list':'glyphicon-user'" aria-hidden="true"></span>
+                  <strong>{{ conversation.display || conversation.number|cutDomain }}</strong>
                   <p class="time text-right">{{ conversation.last_timestamp*1000 | date:'yyyy/MM/dd HH:mm:ss' }}</p>
                 </div>
             </div>
@@ -14,18 +15,30 @@
         <div class="col-md-4">
             <div ng-if="messages.length" ng-repeat="message in messages" id="messages-container">
                  <div class="bubble" ng-class="{ own: message.own }">
-                   <div ng-if="message.participant && !message.own" class="participant">{{ message.notify || message.participant|cutDomain }}</span></div>
-                   <a ng-if="message.url" href="{{ message.url }}" target="_blank">
-                     <img ng-if="message.thumb" ng-src="{{ message.thumb }}" />
-                     <span ng-bind-html="message.content"></span>
-                   </a>
-                   <span ng-if="!message.url">
-                     <img ng-if="message.thumb" ng-src="{{ message.thumb }}" />
-                     <span ng-bind-html="message.content"></span>
-                   </span>
-                   <div style="text-align: right;" class="clearfix">
-                     <p>[<span class="time">{{ message.timestamp*1000 | date:'yyyy/MM/dd HH:mm:ss' }}</span>]</p>
+
+                   <div class="pull-right">
+                     <div>[<span class="time">{{ message.timestamp*1000 | date:'yyyy/MM/dd HH:mm:ss' }}</span>]</div>
+
+                     <div class="pull-right btn-group btn-group-xs" role="group" aria-label="Actions">
+                        <button type="button" class="btn">
+                          <span class="glyphicon glyphicon-ok" aria-hidden="true" title="Confirm read"></span>
+                        </button>
+                     </div>
                    </div>
+
+                   <div class="pull-left">
+                      <div ng-if="message.participant && !message.own" class="participant">{{ message.notify || message.participant|cutDomain }}</span></div>
+                      <a ng-if="message.url" href="{{ message.url }}" target="_blank">
+                        <img ng-if="message.thumb" ng-src="{{ message.thumb }}" />
+                        <span ng-bind-html="message.content"></span>
+                      </a>
+                      <span ng-if="!message.url">
+                        <img ng-if="message.thumb" ng-src="{{ message.thumb }}" />
+                        <span ng-bind-html="message.content"></span>
+                      </span>
+                   </div>
+
+                   <div class="clearfix"></div>
                  </div>
             </div>
         </div>

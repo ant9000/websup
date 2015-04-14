@@ -45,6 +45,7 @@ websupServices.factory('socket', ['$window', '$rootScope', '$interval', '$log', 
      },
      send: function(data){
        if(connection_state=='connected'){
+         $log.log('socket.send',data);
          ws.send(JSON.stringify(data));
        }else{
          // TODO

@@ -59,6 +59,7 @@ body > .container { padding-bottom: 90px; }
 .bubble .number { font-weight: bold; }
 .bubble img { float: left; margin: 0px 15px; }
 .bubble a { text-decoration: none; }
+.bubble .participant { font-weight: bold; color: #a00; }
 
 .list-group {
   box-shadow: none;

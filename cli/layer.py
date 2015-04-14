@@ -173,7 +173,7 @@ class WebsupLayer(YowInterfaceLayer):
         self.toLower(entity)
 
     def group_participants(self, group_jid):
-        entity = ParticipantsGroupsIqProtocolEntity('%s@g.us' % group_jid)
+        entity = ParticipantsGroupsIqProtocolEntity(self.normalizeJid(group_jid))
         logger.info('Group %s, asking for participants.' % group_jid)
         self.toLower(entity)
 

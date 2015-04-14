@@ -45,7 +45,7 @@
                  <a href="#/groups"   class="btn" role="button" ng-class="$location.path()=='/groups'?'btn-primary':'btn-default'">groups</a>
                </div>
                <div class="pull-right" ng-if="username && username.substr(0,9)!='anonymous'">
-                 Click to <a href="/logout">logout</a>
+                  <a href="/logout" class="btn btn-default" role="button"><span class="glyphicon glyphicon-log-out" title="Logout"></span></a>
                </div>
                <div class="clearfix"></div>
             </div>

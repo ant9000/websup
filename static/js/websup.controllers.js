@@ -23,16 +23,23 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
 
   // GROUPS
   $scope.groups = {};
-  $scope.first_group = null;
+  $scope.current_group = null;
+  $scope.participants = [];
   $scope.$on('group',function(evt,data){
     $log.log('GroupsCtrl',data);
     var group = data.content;
     if(!angular.isDefined($scope.groups[group.id])){
       $scope.groups[group.id] = { group_id: group.id };
-      if(!$scope.first_group){ $scope.first_group = group.id; }
     }
     angular.extend($scope.groups[group.id],group);
+    if(group.id == $scope.current_group || group.id){ $scope.setGroup(group.id); }
   });
+  $scope.setGroup = function(group_id){
+    if(angular.isDefined($scope.groups[group_id])){
+      $scope.current_group = group_id;
+      $scope.participants = $scope.groups[group_id].participants || [];
+    }
+  }
   $scope.refreshGroups = function(group_id){
     socket.send({ type: 'group', 'command': 'groups-list' });
   }
@@ -90,13 +97,5 @@ websupControllers.controller('MessagesCtrl', ['$scope', 'socket', '$log', functi
 }]);
 
 websupControllers.controller('GroupsCtrl', ['$scope', 'socket', '$log', function($scope,socket,$log){
-  $scope.current_group = null;
-  $scope.participants = [];
-  $scope.setGroup = function(group_id){
-    if(angular.isDefined($scope.groups[group_id])){
-      $scope.current_group = group_id;
-      $scope.participants = $scope.groups[group_id].participants || [];
-    }
-  }
-  if($scope.first_group){ $scope.setGroup($scope.first_group); }
+
 }]);

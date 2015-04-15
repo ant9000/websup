@@ -120,14 +120,26 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
   socket.start();
 }]);
 
-websupControllers.controller('MessagesCtrl', ['$scope', '$log', function($scope,$log){
+websupControllers.controller('MessagesCtrl', ['$scope', '$window', '$log', function($scope, $window, $log){
+  $scope.messageRead = function(message_id){
+     $window.alert('TODO');
+  };
 }]);
 
-websupControllers.controller('GroupsCtrl', ['$scope', '$log', function($scope,$log){
-  $scope.setNewmessageTo = function(number){
+websupControllers.controller('GroupsCtrl', ['$scope', '$window', '$log', function($scope, $window, $log){
+  $scope.setGroupSubject = function(group_id){
+     $window.alert('TODO');
+  };
+  $scope.addGroupParticipants = function(group_id){
+     $window.alert('TODO');
+  };
+  $scope.messageGroupParticipant = function(number){
     $scope.newmessage.to = number;
     $scope.newmessage.display = '';
     $scope.newmessage.is_group = false;
     angular.element('#newmessage-content').focus();
-  }
+  };
+  $scope.delGroupParticipant = function(group_id,participant){
+     $window.alert('TODO');
+  };
 }]);

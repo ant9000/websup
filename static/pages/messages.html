@@ -21,7 +21,7 @@
 
                      <div ng-if="!message.own" class="pull-right btn-group btn-group-xs" role="group" aria-label="Actions">
                         <button type="button" class="btn">
-                          <span class="glyphicon glyphicon-check" title="Confirm read"></span>
+                          <span class="glyphicon glyphicon-check" title="Confirm read" ng-click="messageRead(message.id)"></span>
                         </button>
                      </div>
                    </div>

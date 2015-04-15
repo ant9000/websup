@@ -11,13 +11,12 @@
     <link rel="stylesheet" href="/static/css/bootstrap-theme.min.css">
     <link rel="stylesheet" href="/static/css/style.css">
 
+    <script src="/static/js/jquery-1.11.2.min.js"></script>
+
     <script src="/static/js/angular.min.js"></script>
     <script src="/static/js/angular-route.min.js"></script>
     <script src="/static/js/angular-sanitize.min.js"></script>
     <script src="/static/js/ui-bootstrap-tpls-0.12.1.min.js"></script>
-
-    <script src="/static/js/jquery-1.11.2.min.js"></script>
-    <script src="/static/js/handlebars-v2.0.0.js"></script>
 
     <script src="/static/js/websup.app.js"></script>
     <script src="/static/js/websup.services.js"></script>
@@ -69,7 +68,7 @@
                                 <input type="text" class="form-control" placeholder="to" ng-model="newmessage.to" ngValue="newmessage.display || newmessage.to|cutDomain" required="" />
                             </div>
                             <div class="col-lg-9">
-                                <input type="text" class="form-control" placeholder="content" ng-model="newmessage.content" required="" />
+                                <input type="text" class="form-control" id="newmessage-content" placeholder="content" ng-model="newmessage.content" required="" />
                             </div>
                             <div class="col-lg-1">
                                 <button type="submit" class="btn btn-default pull-right"> Send </button>

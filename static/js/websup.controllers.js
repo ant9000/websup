@@ -120,13 +120,14 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
   socket.start();
 }]);
 
-websupControllers.controller('MessagesCtrl', ['$scope', 'socket', '$log', function($scope,socket,$log){
+websupControllers.controller('MessagesCtrl', ['$scope', '$log', function($scope,$log){
 }]);
 
-websupControllers.controller('GroupsCtrl', ['$scope', 'socket', '$log', function($scope,socket,$log){
+websupControllers.controller('GroupsCtrl', ['$scope', '$log', function($scope,$log){
   $scope.setNewmessageTo = function(number){
     $scope.newmessage.to = number;
     $scope.newmessage.display = '';
     $scope.newmessage.is_group = false;
+    angular.element('#newmessage-content').focus();
   }
 }]);

@@ -8,11 +8,11 @@
                      ng-click="setGroup(group.id)">
                   <strong>{{ group.subject || group.id|cutDomain }}</strong>
                   <div class="pull-right btn-group btn-group-xs" role="group" aria-label="Actions">
-                     <button type="button" class="btn btn-default">
-                       <span class="glyphicon glyphicon-edit" title="Edit subject" ng-click="setGroupSubject(group.id)"></span>
+                     <button type="button" class="btn btn-default" ng-click="setGroupSubject(group.id)">
+                       <span class="glyphicon glyphicon-edit" title="Edit subject"></span>
                      </button>
-                     <button type="button" class="btn btn-default">
-                       <span class="glyphicon glyphicon-plus" title="Add participants" ng-click="addGroupParticipants(group.id)"></span>
+                     <button type="button" class="btn btn-default" ng-click="addGroupParticipants(group.id)">
+                       <span class="glyphicon glyphicon-plus" title="Add participants"></span>
                      </button>
                   </div>
                   <div class="clearfix"></div>
@@ -25,11 +25,11 @@
               <div ng-if="participants.length" ng-repeat="participant in participants" class="group list-group-item">
                  {{ participant|cutDomain }}
                  <div class="pull-right btn-group btn-group-xs" role="group" aria-label="Actions">
-                    <button type="button" class="btn btn-default">
-                      <span class="glyphicon glyphicon-comment" title="Send message" ng-click="messageGroupParticipant(participant)"></span>
+                    <button type="button" class="btn btn-default" ng-click="messageGroupParticipant(participant)">
+                      <span class="glyphicon glyphicon-comment" title="Send message"></span>
                     </button>
-                    <button type="button" class="btn btn-default">
-                      <span class="glyphicon glyphicon-minus" title="Delete" ng-click="delGroupParticipant(current_group,participant)"></span>
+                    <button type="button" class="btn btn-default" ng-click="delGroupParticipant(current_group,participant)">
+                      <span class="glyphicon glyphicon-minus" title="Delete"></span>
                     </button>
                  </div>
                  <div class="clearfix"></div>
@@ -39,7 +39,7 @@
 
        <div class="col-md-4">
           <div class="pull-right btn-group" role="group" aria-label="Actions">
-             <button type="button" class="btn btn-primary">
+             <button type="button" class="btn btn-primary" ng-click="addGroup()">
                <span class="glyphicon glyphicon-plus"></span>
                Add group
              </button>

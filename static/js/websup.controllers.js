@@ -142,4 +142,7 @@ websupControllers.controller('GroupsCtrl', ['$scope', '$window', '$log', functio
   $scope.delGroupParticipant = function(group_id,participant){
      $window.alert('TODO');
   };
+  $scope.addGroup = function(){
+     $window.alert('TODO');
+  };
 }]);

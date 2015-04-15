@@ -51,8 +51,5 @@
         </div>
 
     </div>
-    <script src="/static/js/jquery-1.11.2.min.js"></script>
-    <script src="/static/js/handlebars-v2.0.0.js"></script>
-    <script src="/static/js/bootstrap.min.js"></script>
 </body>
 </html>

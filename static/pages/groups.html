@@ -9,9 +9,6 @@
                   <strong>{{ group.subject || group.id|cutDomain }}</strong>
                   <div class="pull-right btn-group btn-group-xs" role="group" aria-label="Actions">
                      <button type="button" class="btn btn-default">
-                       <span class="glyphicon glyphicon-comment" title="Send message"></span>
-                     </button>
-                     <button type="button" class="btn btn-default">
                        <span class="glyphicon glyphicon-edit" title="Edit subject"></span>
                      </button>
                      <button type="button" class="btn btn-default">
@@ -29,7 +26,7 @@
                  {{ participant|cutDomain }}
                  <div class="pull-right btn-group btn-group-xs" role="group" aria-label="Actions">
                     <button type="button" class="btn btn-default">
-                      <span class="glyphicon glyphicon-comment" title="Send message"></span>
+                      <span class="glyphicon glyphicon-comment" title="Send message" ng-click="setNewmessageTo(participant)"></span>
                     </button>
                     <button type="button" class="btn btn-default">
                       <span class="glyphicon glyphicon-minus" title="Delete"></span>

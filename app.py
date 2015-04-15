@@ -194,6 +194,7 @@ def echo(ws):
                                 'timestamp': int(time.time()),
                                 'content': data['content'],
                                 'to': data['to'],
+                                'is_group': data['is_group'],
                                 'url': '',
                                 'thumb': '',
                                 'own': True,

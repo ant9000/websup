@@ -3,8 +3,9 @@
 var websupControllers = angular.module('websupControllers', []);
 
 websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log', '$window', function($scope,$location,socket,$log,$window){
-  // SESSION INFO
   $scope.$location = $location;
+
+  // SESSION INFO
   $scope.username = null;
   $scope.$on('connection',function(evt,state){
     $log.log(state);
@@ -12,12 +13,17 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
   });
   $scope.$on('session',function(evt,data){
     $log.log('MainCtrl',data);
-    if(data.content=='connected'){
-      $scope.username = data.username;
-      $scope.phone = data.phone;
+    var session = data.content;
+    if(session.status=='connected'){
+      $scope.username = session.username;
+      $scope.phone = session.phone;
       $scope.refreshGroups();
-    }else if(data.content=='not authenticated'){
+    }else if(session.status=='not authenticated'){
       $window.location = '/login';
+    }else if(session.status=='logged in'){
+      // TODO
+    }else if(session.status=='error'){
+      // TODO
     } 
   });
 

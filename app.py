@@ -158,7 +158,10 @@ def echo(ws):
                 logger.info('%s %s', username, msg)
             if username.startswith('anonymous@') and \
                     bottle.request.remote_addr != '127.0.0.1':
-                res = {'type': 'session', 'content': 'not authenticated'}
+                res = {
+                    'type': 'session',
+                    'content': {'status': 'not authenticated'},
+                }
                 ws.send(json.dumps(res))
             else:
                 data = None
@@ -171,9 +174,11 @@ def echo(ws):
                     if data['type'] == 'session':
                         res = {
                             'type': 'session',
-                            'content': 'connected',
-                            'username': username,
-                            'phone':   phone,
+                            'content': {
+                              'status': 'connected',
+                              'username': username,
+                              'phone': phone,
+                            },
                         }
                         ws.send(json.dumps(res))
                         if data['msg'] == 'connected':
@@ -244,7 +249,11 @@ def queue_consumer():
                     mailer.send_email(email_to, subj, body)
                     logger.info('msg %s "%s"', direction, msg[direction])
                 elif item.item_type == 'group':
-                    pass
+                    if 'participants' in item.content:
+                        item.content['participants'] = [
+                            p for p in item.content['participants']
+                            if p.split('@')[0] != phone
+                        ]
                 else:
                     pass
                 # if received via web, push it to Whatsapp

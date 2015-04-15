@@ -180,12 +180,27 @@ class WebsupLayer(YowInterfaceLayer):
     @ProtocolEntityCallback("success")
     def onSuccess(self, entity):
         self.connected = True
+        item = QueueItem(
+            item_type='session',
+            content={
+                'status': 'logged in',
+            },
+        )
+        self.queue.put(item)
         logger.info("Logged in!")
 
     @ProtocolEntityCallback("failure")
     def onFailure(self, entity):
         self.connected = False
-        logger.warning("Login Failed, reason: %s" % entity.getReason())
+        item = QueueItem(
+            item_type='session',
+            content={
+                'status': 'error',
+                'message': entity.getReason(),
+            }
+        )
+        self.queue.put(item)
+        logger.error("Login Failed, reason: %s" % entity.getReason())
 
     @ProtocolEntityCallback("iq")
     def onIq(self, entity):

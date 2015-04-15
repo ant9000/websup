@@ -19,7 +19,7 @@
                    <div class="pull-right">
                      <div>[<span class="time">{{ message.timestamp*1000 | date:'yyyy/MM/dd HH:mm:ss' }}</span>]</div>
 
-                     <div class="pull-right btn-group btn-group-xs" role="group" aria-label="Actions">
+                     <div ng-if="!message.own" class="pull-right btn-group btn-group-xs" role="group" aria-label="Actions">
                         <button type="button" class="btn">
                           <span class="glyphicon glyphicon-check" title="Confirm read"></span>
                         </button>

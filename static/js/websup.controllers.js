@@ -34,25 +34,30 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
   }
 
   // GROUPS
-  $scope.groups = {};
+  $scope.groups = [];
+  $scope.groupIds = {};
   $scope.current_group = null;
   $scope.participants = [];
   $scope.$on('group',function(evt,data){
     $log.log('GroupsCtrl',data);
     var group = data.content;
-    if(!angular.isDefined($scope.groups[group.id])){
-      $scope.groups[group.id] = { group_id: group.id };
+    var idx = $scope.groupIds[group.id];
+    if(!angular.isDefined(idx)){
+      idx = $scope.groups.length;
+      $scope.groupIds[group.id] = idx;
+      $scope.groups.push({ group_id: group.id });
     }
-    angular.extend($scope.groups[group.id],group);
+    angular.extend($scope.groups[idx],group);
     if(group.id == $scope.current_group || group.id){ $scope.setGroup(group.id,false); }
   });
   $scope.setGroup = function(group_id,set_to){
-    if(angular.isDefined($scope.groups[group_id])){
+    var idx = $scope.groupIds[group_id];
+    if(angular.isDefined(idx)){
       $scope.current_group = group_id;
-      $scope.participants = $scope.groups[group_id].participants || [];
+      $scope.participants = $scope.groups[idx].participants || [];
       if(set_to!==false){
         $scope.newmessage.to = group_id;
-        $scope.newmessage.display =  $scope.groups[group_id].subject || group_id;
+        $scope.newmessage.display =  $scope.groups[idx].subject || group_id;
         $scope.newmessage.is_group = true;
       }
     }
@@ -72,7 +77,7 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
     var number = message.own? message.to : message.from;
     var display = '';
     if(message.is_group){
-      var group = $scope.groups[number];
+      var group = $scope.groups[$scope.groupIds[number]];
       if(group && group.subject){ display = group.subject; }
     }else{
       if(message.notify){ display = message.notify; }

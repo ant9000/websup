@@ -8,10 +8,10 @@
                      ng-click="setGroup(group.id)">
                   <strong>{{ group.subject || group.id|cutDomain }}</strong>
                   <div class="pull-right btn-group btn-group-xs" role="group" aria-label="Actions">
-                     <button type="button" class="btn btn-default" ng-click="setGroupSubject(group.id)">
+                     <button type="button" class="btn btn-default" ng-click="setGroupSubject(group)">
                        <span class="glyphicon glyphicon-edit" title="Edit subject"></span>
                      </button>
-                     <button type="button" class="btn btn-default" ng-click="addGroupParticipants(group.id)">
+                     <button type="button" class="btn btn-default" ng-click="addGroupParticipants(group)">
                        <span class="glyphicon glyphicon-plus" title="Add participants"></span>
                      </button>
                   </div>
@@ -47,5 +47,25 @@
           <div class="clearfix"></div>
        </div>
     </div>
+
+    <script type="text/ng-template" id="editGroup.html">
+        <div class="modal-header">
+           <h3 ng-if="!group.id" class="modal-title">Add new group</h3>
+           <h3 ng-if="group.id" class="modal-title">Change group subject</h3>
+        </div>
+        <div class="modal-body">
+           <form>
+              <input type="hidden" class="form-control" id="group_id" ng-model="group.id" />
+              <div class="form-group">
+                <label for="subject">Group subject</label>
+                <input type="text" class="form-control" id="subject" placeholder="Enter group subject" ng-model="group.subject" required />
+              </div>
+           </form>
+        </div>
+        <div class="modal-footer">
+            <button class="btn btn-primary" ng-click="$close(group)">OK</button>
+            <button class="btn btn-warning" ng-click="$dismiss('cancel')">Cancel</button>
+        </div>
+    </script>
 
 </div>

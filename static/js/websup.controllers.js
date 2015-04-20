@@ -126,23 +126,43 @@ websupControllers.controller('MessagesCtrl', ['$scope', '$window', '$log', funct
   };
 }]);
 
-websupControllers.controller('GroupsCtrl', ['$scope', '$window', '$log', function($scope, $window, $log){
-  $scope.setGroupSubject = function(group_id){
-     $window.alert('TODO');
+websupControllers.controller('GroupsCtrl', ['$scope', '$window', '$modal', 'socket', '$log', function($scope, $window, $modal, socket, $log){
+  $scope.editGroup = function(group){
+    var modalInstance = $modal.open({
+      templateUrl: 'editGroup.html',
+      controller: 'EditGroupCtrl',
+      size: 'sm',
+      resolve: {
+         group: function(){ return group; }
+      }
+    });
+    modalInstance.result.then(function(group) {
+      $log.log('Edit group: ',group);
+      if(group.subject){
+        var command = group.id? 'subject' : 'create';
+        socket.send(angular.extend({ type: 'group', 'command': command }, group));
+      }
+    }, function () {
+      $log.log('Modal dismissed at: ' + new Date());
+    });
   };
-  $scope.addGroupParticipants = function(group_id){
-     $window.alert('TODO');
-  };
+  $scope.setGroupSubject = function(group){ $scope.editGroup(group); };
+  $scope.addGroup = function(){ $scope.editGroup(null); };
   $scope.messageGroupParticipant = function(number){
     $scope.newmessage.to = number;
     $scope.newmessage.display = '';
     $scope.newmessage.is_group = false;
     angular.element('#newmessage-content').focus();
   };
+
+  $scope.addGroupParticipants = function(group){
+     $window.alert('TODO');
+  };
   $scope.delGroupParticipant = function(group_id,participant){
      $window.alert('TODO');
   };
-  $scope.addGroup = function(){
-     $window.alert('TODO');
-  };
 }]);
+
+websupControllers.controller('EditGroupCtrl', function ($scope, $modalInstance, group) {
+  $scope.group = group;
+});

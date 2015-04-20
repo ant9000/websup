@@ -15,7 +15,11 @@ from yowsup.layers.protocol_groups.protocolentities import \
     ListGroupsResultIqProtocolEntity, \
     ParticipantsGroupsIqProtocolEntity, \
     ListParticipantsResultIqProtocolEntity, \
+    CreateGroupsIqProtocolEntity, \
+    SubjectGroupsIqProtocolEntity, \
     SubjectGroupsNotificationProtocolEntity
+from yowsup.layers.protocol_groups.protocolentities.notification_groups_create import \
+    CreateGroupsNotificationProtocolEntity
 from yowsup.layers.protocol_groups.structs.group import Group
 from yowsup.layers.protocol_notifications.protocolentities.notification_status \
     import StatusNotificationProtocolEntity
@@ -66,11 +70,15 @@ class WebsupLayer(YowInterfaceLayer):
                 elif data['command'] == 'group-participants':
                     if data.get('group_id',None):
                         self.group_participants(data['group_id'])
-                # group-create
-                # group-subject
-                # group-participant-add
-                # group-participant-del
-                # group-destroy
+                elif data['command'] == 'create':
+                    if data.get('subject',None):
+                        self.group_create(data['subject'])
+                elif data['command'] == 'subject':
+                    if data.get('group_id',None) and data.get('subject',None):
+                        self.group_subject(data['group_id'], data['subject'])
+                # participant-add
+                # participant-del
+                # destroy
             return True
         elif name == YowNetworkLayer.EVENT_STATE_CONNECTED:
             logger.info("Connected")
@@ -172,10 +180,21 @@ class WebsupLayer(YowInterfaceLayer):
         logger.info('Asking for group list.')
         self.toLower(entity)
 
-    def group_participants(self, group_jid):
-        entity = ParticipantsGroupsIqProtocolEntity(self.normalizeJid(group_jid))
-        logger.info('Group %s, asking for participants.' % group_jid)
+    def group_participants(self, group_id):
+        entity = ParticipantsGroupsIqProtocolEntity(self.normalizeJid(group_id))
+        logger.info('Group %s, asking for participants.' % group_id)
         self.toLower(entity)
+
+    def group_create(self, subject):
+        entity = CreateGroupsIqProtocolEntity(subject)
+        logger.info('Creating new group with subject "%s"' % subject)
+        self.toLower(entity)
+        
+    def group_subject(self, group_id, subject):
+        entity = SubjectGroupsIqProtocolEntity(self.normalizeJid(group_id), subject)
+        logger.info('Change subject of group %s to "%s"' % (group_id, subject))
+        self.toLower(entity)
+
 
     @ProtocolEntityCallback("success")
     def onSuccess(self, entity):
@@ -244,6 +263,7 @@ class WebsupLayer(YowInterfaceLayer):
 
     @ProtocolEntityCallback("notification")
     def onNotification(self, entity):
+        logger.info('Notification received entity %s' % entity.__class__)
         if isinstance(entity, SubjectGroupsNotificationProtocolEntity):
             logger.info(
                 'Group %s new subject: "%s"' % (
@@ -253,21 +273,40 @@ class WebsupLayer(YowInterfaceLayer):
             item = QueueItem(
                 item_type='group',
                 content={
-                    'id': group.getFrom(),
-                    'subject': group.getSubject(),
-                    'subject-owner': group.getSubjectOwner(),
-                    'subject-time': group.getSubjectTime(),
+                    'id': entity.getFrom(),
+                    'subject': entity.getSubject(),
+                    'subject-owner': entity.getSubjectOwner(),
+                    'subject-time': entity.getSubjectTimestamp(),
                 }
             )
             self.queue.put(item)
-        elif isinstance(entity, StatusNotificationProtocolEntity):
+#       elif isinstance(entity, StatusNotificationProtocolEntity):
+#           logger.info(
+#               'Status %s for "%s" %s' % (
+#                   entity.status,
+#                   entity.notify,
+#                   entity.getFrom()
+#               )
+#           )
+        elif isinstance(entity, CreateGroupsNotificationProtocolEntity):
             logger.info(
-                'Status %s for "%s" %s' % (
-                    entity.status,
-                    entity.notify,
-                    entity.getFrom()
+                'New group %s with subject: "%s"' % (
+                    entity.getGroupId(), entity.getSubject()
                 )
             )
+            item = QueueItem(
+                item_type='group',
+                content={
+                    'id': self.normalizeJid(group.getGroupId()),
+                    'owner': group.getCreatorJid(),
+                    'created': group.getCreationTimestamp(),
+                    'subject': group.getSubject(),
+                    'subject-owner': group.getSubjectOwnerJid(),
+                    'subject-time': group.getSubjectTimestamp(),
+                    'participants': group.getParticipants(),
+                }
+            )
+            self.queue.put(item)
 #       elif isinstance(entity, UpdateContactNotificationProtocolEntity):
 #       elif isinstance(entity, PictureNotificationProtocolEntity):
         else:

@@ -18,7 +18,8 @@ from yowsup.layers.protocol_groups.protocolentities import \
     CreateGroupsIqProtocolEntity, \
     SuccessCreateGroupsIqProtocolEntity, \
     SubjectGroupsIqProtocolEntity, \
-    SubjectGroupsNotificationProtocolEntity
+    SubjectGroupsNotificationProtocolEntity, \
+    AddParticipantsIqProtocolEntity
 from yowsup.layers.protocol_groups.protocolentities.notification_groups_create import \
     CreateGroupsNotificationProtocolEntity
 from yowsup.layers.protocol_groups.structs.group import Group
@@ -79,6 +80,11 @@ class WebsupLayer(YowInterfaceLayer):
                     if data.get('group_id', None) and \
                             data.get('subject', None):
                         self.group_subject(data['group_id'], data['subject'])
+                elif data['command'] == 'participants-add':
+                    if data.get('group_id', None) and \
+                            data.get('participants', None):
+                        for participant in data['participants']:
+                            self.group_participant_add(data['group_id'], participant)
                 # participant-add
                 # participant-del
                 # destroy
@@ -206,6 +212,19 @@ class WebsupLayer(YowInterfaceLayer):
         logger.info('Change subject of group %s to "%s"' % (group_id, subject))
         self.toLower(entity)
 
+    def group_participant_add(self, group_id, participant):
+        entity = AddParticipantsIqProtocolEntity(
+            self.normalizeJid(group_id),
+            self.normalizeJid(participant),
+        )
+        self.pending_iqs[entity.getId()] = {
+            'group_id': None,
+            'participant': participant,
+        }
+        logger.info('Group %s, add participant %s' % (group_id, participant))
+        self.toLower(entity)
+
+
     @ProtocolEntityCallback("success")
     def onSuccess(self, entity):
         self.connected = True
@@ -286,7 +305,11 @@ class WebsupLayer(YowInterfaceLayer):
                 )
                 self.queue.put(item)
         else:
-            logger.info('Iq received entity %s' % entity.__class__)
+            logger.info(
+                'Iq received entity %s of class %s' % (
+                    entity.getId(), entity.__class__
+                )
+            )
 
     @ProtocolEntityCallback("notification")
     def onNotification(self, entity):

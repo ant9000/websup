@@ -60,6 +60,10 @@
                 <label for="subject">Group subject</label>
                 <input type="text" class="form-control" id="subject" placeholder="Enter group subject" ng-model="group.subject" required />
               </div>
+              <div class="form-group" ng-if="group.id">
+                <label for="participants">Participants</label>
+                <textarea class="form-control" id="participants" placeholder="Enter participants, one per line" ng-model="group.participants"/>
+              </div>
            </form>
         </div>
         <div class="modal-footer">

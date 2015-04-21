@@ -133,16 +133,22 @@ websupControllers.controller('GroupsCtrl', ['$scope', '$window', '$modal', 'sock
       controller: 'EditGroupCtrl',
       size: 'sm',
       resolve: {
-         group: function(){ return group; }
+         group: function(){ return angular.copy(group); }
       }
     });
+    var initial = angular.copy(group);
     modalInstance.result.then(function(group) {
-      $log.log('Edit group: ',group);
-      if(group.subject){
+      $log.log('Edit group: ',group, initial);
+      if(group.subject && (group.subject != initial.subject)){
         var command = group.id? 'subject' : 'create';
         socket.send(angular.extend({ type: 'group', 'command': command }, group));
       }
-    }, function () {
+      if(group.participants && (group.participants != initial.participants)){
+        $log.log('Participants: ', group.participants, 'Initial: ', initial.participants);
+        // TODO: validation
+        // socket.send(angular.extend({ type: 'group', command: 'participants-add' }, group));
+      }
+    }, function(){
       $log.log('Modal dismissed at: ' + new Date());
     });
   };

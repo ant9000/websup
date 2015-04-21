@@ -86,17 +86,27 @@ class WebsupLayer(YowInterfaceLayer):
                     if data.get('group_id', None):
                         self.group_delete(data['group_id'])
                 elif data['command'] == 'participants':
-                    if data.get('group_id', None) and \
-                            data.get('new', None):
+                    if data.get('group_id', None):
+                        participants = {}
+                        for l in ['old', 'new']:
+                            participants[l] = set([
+                                p.strip() for p in data.get(l, []) if p.strip()
+                            ])
+                        to_add = participants['new'] - participants['old']
+                        to_del = participants['old'] - participants['new']
                         logger.info(
                             'Edit group %s participants: old=%s, new=%s' % (
                                 data['group_id'],
-                                data.get('old',[]),
-                                data['new']
+                                participants['old'],
+                                participants['new'],
                             )
                         )
-                        #for participant in data['participants']:
-                        #    self.group_participant_add(data['group_id'], participant)
+                        logger.info('Participants to add: %s' % to_add)
+                        logger.info('Participants to remove: %s' % to_del)
+                        for participant in to_add:
+                            self.group_participant_add(data['group_id'], participant)
+                        for participant in to_del:
+                            self.group_participant_del(data['group_id'], participant)
             return True
         elif name == YowNetworkLayer.EVENT_STATE_CONNECTED:
             logger.info("Connected")
@@ -215,6 +225,7 @@ class WebsupLayer(YowInterfaceLayer):
         self.toLower(entity)
 
     def group_delete(self, group_id):
+        # TODO: does not work
         entity = DeleteGroupsIqProtocolEntity(self.normalizeJid(group_id))
         logger.info('Deleting group %s.' % group_id)
         self.toLower(entity)
@@ -232,12 +243,16 @@ class WebsupLayer(YowInterfaceLayer):
             self.normalizeJid(participant),
         )
         self.pending_iqs[entity.getId()] = {
-            'group_id': None,
+            'group_id': group_id,
             'participant': participant,
         }
         logger.info('Group %s, add participant %s' % (group_id, participant))
+        logger.info(entity.toProtocolTreeNode())
         self.toLower(entity)
 
+    def group_participant_del(self, group_id, participant):
+        # TODO
+        logger.info('Group %s, del participant %s' % (group_id, participant))
 
     @ProtocolEntityCallback("success")
     def onSuccess(self, entity):

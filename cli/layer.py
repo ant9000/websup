@@ -19,6 +19,7 @@ from yowsup.layers.protocol_groups.protocolentities import \
     SuccessCreateGroupsIqProtocolEntity, \
     SubjectGroupsIqProtocolEntity, \
     SubjectGroupsNotificationProtocolEntity, \
+    DeleteGroupsIqProtocolEntity, \
     AddParticipantsIqProtocolEntity
 from yowsup.layers.protocol_groups.protocolentities.notification_groups_create import \
     CreateGroupsNotificationProtocolEntity
@@ -34,6 +35,7 @@ from .queue import QueueItem
 from . import myemoji
 import os
 import binascii
+from operator import itemgetter
 import logging
 logger = logging.getLogger(__name__)
 
@@ -80,14 +82,21 @@ class WebsupLayer(YowInterfaceLayer):
                     if data.get('group_id', None) and \
                             data.get('subject', None):
                         self.group_subject(data['group_id'], data['subject'])
-                elif data['command'] == 'participants-add':
+                elif data['command'] == 'delete':
+                    if data.get('group_id', None):
+                        self.group_delete(data['group_id'])
+                elif data['command'] == 'participants':
                     if data.get('group_id', None) and \
-                            data.get('participants', None):
-                        for participant in data['participants']:
-                            self.group_participant_add(data['group_id'], participant)
-                # participant-add
-                # participant-del
-                # destroy
+                            data.get('new', None):
+                        logger.info(
+                            'Edit group %s participants: old=%s, new=%s' % (
+                                data['group_id'],
+                                data.get('old',[]),
+                                data['new']
+                            )
+                        )
+                        #for participant in data['participants']:
+                        #    self.group_participant_add(data['group_id'], participant)
             return True
         elif name == YowNetworkLayer.EVENT_STATE_CONNECTED:
             logger.info("Connected")
@@ -205,6 +214,11 @@ class WebsupLayer(YowInterfaceLayer):
         }
         self.toLower(entity)
 
+    def group_delete(self, group_id):
+        entity = DeleteGroupsIqProtocolEntity(self.normalizeJid(group_id))
+        logger.info('Deleting group %s.' % group_id)
+        self.toLower(entity)
+
     def group_subject(self, group_id, subject):
         entity = SubjectGroupsIqProtocolEntity(
             self.normalizeJid(group_id), subject
@@ -255,21 +269,23 @@ class WebsupLayer(YowInterfaceLayer):
         if isinstance(entity, ListGroupsResultIqProtocolEntity):
             logger.info('Group list results:')
             if entity.getGroups():
+                groups = []
                 for group in entity.getGroups():
                     logger.info('- %s' % group)
-                    item = QueueItem(
-                        item_type='group',
-                        content={
-                            'id': self.normalizeJid(group.getId()),
-                            'owner': group.getOwner(),
-                            'created': group.getCreationTime(),
-                            'subject': group.getSubject(),
-                            'subject-owner': group.getSubjectOwner(),
-                            'subject-time': group.getSubjectTime(),
-                        }
-                    )
-                    self.queue.put(item)
+                    groups.append({
+                        'id': self.normalizeJid(group.getId()),
+                        'owner': group.getOwner(),
+                        'created': group.getCreationTime(),
+                        'subject': group.getSubject(),
+                        'subject-owner': group.getSubjectOwner(),
+                        'subject-time': group.getSubjectTime(),
+                    })
                     self.group_participants(group.getId())
+                item = QueueItem(
+                    item_type='group-list',
+                    content={ 'groups': sorted(groups,key=itemgetter('subject')), }
+                )
+                self.queue.put(item)
             else:
                 logger.info('- no groups')
         elif isinstance(entity, ListParticipantsResultIqProtocolEntity):

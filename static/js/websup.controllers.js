@@ -44,9 +44,7 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
   $scope.groupIds = {};
   $scope.current_group = null;
   $scope.participants = [];
-  $scope.$on('group',function(evt,data){
-    $log.log('GroupsCtrl',data);
-    var group = data.content;
+  function updateGroup(group){
     var idx = $scope.groupIds[group.id];
     if(!angular.isDefined(idx)){
       idx = $scope.groups.length;
@@ -54,7 +52,20 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
       $scope.groups.push({ group_id: group.id });
     }
     angular.extend($scope.groups[idx],group);
-    if(group.id == $scope.current_group || group.id){ $scope.setGroup(group.id,false); }
+    if(group.id == ($scope.current_group || group.id)){ $scope.setGroup(group.id,false); }
+  }
+  $scope.$on('group-list',function(evt,data){
+    $log.log('GroupsCtrl',evt,data);
+    $scope.groups = [];
+    $scope.groupIds = {};
+    $scope.current_group = null;
+    $scope.participants = [];
+    var groups = data.content.groups;
+    for(var i=0;i<groups.length;i++){ updateGroup(groups[i]); }
+  });
+  $scope.$on('group',function(evt,data){
+    $log.log('GroupsCtrl',evt,data);
+    updateGroup(data.content);
   });
   $scope.setGroup = function(group_id,set_to){
     var idx = $scope.groupIds[group_id];
@@ -139,33 +150,28 @@ websupControllers.controller('GroupsCtrl', ['$scope', '$window', '$modal', 'sock
     var initial = angular.copy(group);
     modalInstance.result.then(function(group) {
       $log.log('Edit group: ',group, initial);
+      if(group.delete){
+        $log.log('Delete group: ', group.id);
+        socket.send({ type: 'group', command: 'delete', 'group_id': group.id });
+        return; // no need to change anything else
+      }
       if(group.subject && (group.subject != initial.subject)){
         var command = group.id? 'subject' : 'create';
-        socket.send(angular.extend({ type: 'group', 'command': command }, group));
+        socket.send({ type: 'group', 'command': command, 'group_id': group.id, 'subject': group.subject });
       }
       if(group.participants && (group.participants != initial.participants)){
         $log.log('Participants: ', group.participants, 'Initial: ', initial.participants);
-        // TODO: validation
-        // socket.send(angular.extend({ type: 'group', command: 'participants-add' }, group));
+        socket.send({ type: 'group', command: 'participants', 'group_id': group.id, 'old': initial.participants, 'new': group.participants });
       }
     }, function(){
       $log.log('Modal dismissed at: ' + new Date());
     });
   };
-  $scope.setGroupSubject = function(group){ $scope.editGroup(group); };
-  $scope.addGroup = function(){ $scope.editGroup(null); };
   $scope.messageGroupParticipant = function(number){
     $scope.newmessage.to = number;
     $scope.newmessage.display = '';
     $scope.newmessage.is_group = false;
     angular.element('#newmessage-content').focus();
-  };
-
-  $scope.addGroupParticipants = function(group){
-     $window.alert('TODO');
-  };
-  $scope.delGroupParticipant = function(group_id,participant){
-     $window.alert('TODO');
   };
 }]);
 

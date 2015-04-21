@@ -8,11 +8,8 @@
                      ng-click="setGroup(group.id)">
                   <strong>{{ group.subject || group.id|cutDomain }}</strong>
                   <div class="pull-right btn-group btn-group-xs" role="group" aria-label="Actions">
-                     <button type="button" class="btn btn-default" ng-click="setGroupSubject(group)">
-                       <span class="glyphicon glyphicon-edit" title="Edit subject"></span>
-                     </button>
-                     <button type="button" class="btn btn-default" ng-click="addGroupParticipants(group)">
-                       <span class="glyphicon glyphicon-plus" title="Add participants"></span>
+                     <button type="button" class="btn btn-default" ng-click="editGroup(group)">
+                       <span class="glyphicon glyphicon-edit" title="Edit group"></span>
                      </button>
                   </div>
                   <div class="clearfix"></div>
@@ -28,9 +25,6 @@
                     <button type="button" class="btn btn-default" ng-click="messageGroupParticipant(participant)">
                       <span class="glyphicon glyphicon-comment" title="Send message"></span>
                     </button>
-                    <button type="button" class="btn btn-default" ng-click="delGroupParticipant(current_group,participant)">
-                      <span class="glyphicon glyphicon-minus" title="Delete"></span>
-                    </button>
                  </div>
                  <div class="clearfix"></div>
               </div>
@@ -39,7 +33,7 @@
 
        <div class="col-md-4">
           <div class="pull-right btn-group" role="group" aria-label="Actions">
-             <button type="button" class="btn btn-primary" ng-click="addGroup()">
+             <button type="button" class="btn btn-primary" ng-click="editGroup({})">
                <span class="glyphicon glyphicon-plus"></span>
                Add group
              </button>
@@ -62,7 +56,14 @@
               </div>
               <div class="form-group" ng-if="group.id">
                 <label for="participants">Participants</label>
-                <textarea class="form-control" id="participants" placeholder="Enter participants, one per line" ng-model="group.participants"/>
+                <textarea class="form-control" id="participants" placeholder="Enter participants, one per line"
+                     ng-model="group.participants" ng-list="&#10;" ng-trim="false" />
+              </div>
+              <div ng-if="group.id" class="checkbox">
+                <label for="delete">
+                  <input type="checkbox" id="delete" ng-model="group.delete" />
+                  Delete group?
+                </label>
               </div>
            </form>
         </div>

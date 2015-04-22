@@ -214,7 +214,7 @@ class WebsupLayer(YowInterfaceLayer):
 
     def groups_list(self):
         entity = ListGroupsIqProtocolEntity()
-        logger.info('Asking for group list.')
+        logger.info('Asking for groups list.')
         self.toLower(entity)
 
     def group_participants(self, group_id):
@@ -329,23 +329,23 @@ class WebsupLayer(YowInterfaceLayer):
             else:
                 msg.append('- no participants')
             logger.info('\n'.join(msg))
-        elif isinstance(entity, SuccessCreateGroupsIqProtocolEntity):
-            group = self.pending_iqs.get(entity.getId(), None)
-            if group:
-                del self.pending_iqs[entity.getId()]
-                logger.info(
-                    'Group "%s" created with id %s' % (
-                        group['subject'], entity.groupId
-                    )
-                )
-                item = QueueItem(
-                    item_type='group',
-                    content={
-                        'id': self.normalizeJid(entity.groupId),
-                        'subject': group['subject'],
-                    }
-                )
-                self.queue.put(item)
+#       elif isinstance(entity, SuccessCreateGroupsIqProtocolEntity):
+#           group = self.pending_iqs.get(entity.getId(), None)
+#           if group:
+#               del self.pending_iqs[entity.getId()]
+#               logger.info(
+#                   'Group "%s" created with id %s' % (
+#                       group['subject'], entity.groupId
+#                   )
+#               )
+#               item = QueueItem(
+#                   item_type='group',
+#                   content={
+#                       'id': self.normalizeJid(entity.groupId),
+#                       'subject': group['subject'],
+#                   }
+#               )
+#               self.queue.put(item)
         else:
             logger.info('Iq received entity:\n%s' % entity.toProtocolTreeNode())
 
@@ -367,35 +367,25 @@ class WebsupLayer(YowInterfaceLayer):
                 }
             )
             self.queue.put(item)
-#       elif isinstance(entity, StatusNotificationProtocolEntity):
-#           logger.info(
-#               'Status %s for "%s" %s' % (
-#                   entity.status,
-#                   entity.notify,
-#                   entity.getFrom()
-#               )
-#           )
-#       elif isinstance(entity, CreateGroupsNotificationProtocolEntity):
-#           logger.info(
-#               'New group %s with subject: "%s"' % (
-#                   entity.getGroupId(), entity.getSubject()
-#               )
-#           )
-#           item = QueueItem(
-#               item_type='group',
-#               content={
-#                   'id': self.normalizeJid(group.getGroupId()),
-#                   'owner': group.getCreatorJid(),
-#                   'created': group.getCreationTimestamp(),
-#                   'subject': group.getSubject(),
-#                   'subject-owner': group.getSubjectOwnerJid(),
-#                   'subject-time': group.getSubjectTimestamp(),
-#                   'participants': group.getParticipants(),
-#               }
-#           )
-#           self.queue.put(item)
-#       elif isinstance(entity, UpdateContactNotificationProtocolEntity):
-#       elif isinstance(entity, PictureNotificationProtocolEntity):
+        elif isinstance(entity, CreateGroupsNotificationProtocolEntity):
+            logger.info(
+                'New group %s with subject: "%s"' % (
+                    entity.getGroupId(), entity.getSubject()
+                )
+            )
+            item = QueueItem(
+                item_type='group',
+                content={
+                    'id': self.normalizeJid(entity.getGroupId()),
+                    'owner': entity.getCreatorJid(),
+                    'created': entity.getCreationTimestamp(),
+                    'subject': entity.getSubject(),
+                    'subject-owner': entity.getSubjectOwnerJid(),
+                    'subject-time': entity.getSubjectTimestamp(),
+                    'participants': entity.getParticipants(),
+                }
+            )
+            self.queue.put(item)
         else:
             logger.info('Notification received entity:\n%s' % entity.toProtocolTreeNode())
 

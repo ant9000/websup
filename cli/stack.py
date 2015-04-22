@@ -1,4 +1,5 @@
-from yowsup.stacks import YowStack, YowStackBuilder
+from yowsup.stacks import YowStackBuilder
+from yowsup.layers.axolotl import YowAxolotlLayer
 from yowsup.layers.network import YowNetworkLayer
 from yowsup.layers.auth import AuthError
 from yowsup.layers import YowLayerEvent, YowParallelLayer
@@ -6,46 +7,33 @@ from yowsup import env
 from yowsup.env import S40YowsupEnv
 import sys
 import gevent
+from .protocol_media import MediaProtocolLayer
+from .protocol_group import GroupProtocolLayer
 from .layer import WebsupLayer
 import logging
 logger = logging.getLogger(__name__)
 
 
-# patch to support audio / video messages
-from yowsup.layers.protocol_media import YowMediaProtocolLayer
-from yowsup.layers.protocol_media.protocolentities \
-    import DownloadableMediaMessageProtocolEntity as DownloadableMediaEntity
-from yowsup.layers.protocol_media.protocolentities \
-    import ImageDownloadableMediaMessageProtocolEntity as ImageMediaEntity
-recvMessageStanzaOriginal = YowMediaProtocolLayer.recvMessageStanza
-
-
-def recvMessageStanza(self, node):
-    if node.getAttributeValue("type") == "media":
-        mediaNode = node.getChild("media")
-        if mediaNode.getAttributeValue("type") == "video":
-            entity = ImageMediaEntity.fromProtocolTreeNode(node)
-            self.toUpper(entity)
-        elif mediaNode.getAttributeValue("type") == "audio":
-            entity = DownloadableMediaEntity.fromProtocolTreeNode(node)
-            self.toUpper(entity)
-        else:
-            return recvMessageStanzaOriginal(self, node)
-YowMediaProtocolLayer.recvMessageStanza = recvMessageStanza
-# end patch
-
-
 class WebsupStack(object):
-    def __init__(self, credentials, encryptionEnabled=False):
+    def __init__(self, credentials,encryptionEnabled=False):
         stackBuilder = YowStackBuilder()
 
         if not encryptionEnabled:
             env.CURRENT_ENV = S40YowsupEnv()
 
-        self.stack = stackBuilder\
-            .pushDefaultLayers(encryptionEnabled)\
-            .push(WebsupLayer)\
-            .build()
+        stackBuilder.layers = YowStackBuilder.getCoreLayers()
+        if encryptionEnabled:
+            stackBuilder.push(YowAxolotlLayer)
+        protocolLayers = YowStackBuilder.getProtocolLayers(
+            groups=False, media=False, privacy=True
+        )
+        protocolLayers += (
+            MediaProtocolLayer,
+            GroupProtocolLayer,
+        )
+        stackBuilder.push(YowParallelLayer(protocolLayers))
+        stackBuilder.push(WebsupLayer)
+        self.stack = stackBuilder.build()
         self.stack.setCredentials(credentials)
 
     def start(self, queue):

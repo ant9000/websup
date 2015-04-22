@@ -50,10 +50,11 @@ class WebsupLayer(YowInterfaceLayer):
         self.pending_iqs = {}
 
     def normalizeJid(self, number):
-        if '@' in number:
+        if "@" in number:
             return number
         elif "-" in number:
             return "%s@g.us" % number
+        return "%s@s.whatsapp.net" % number
 
     def onEvent(self, layerEvent):
         name = layerEvent.getName()
@@ -90,7 +91,9 @@ class WebsupLayer(YowInterfaceLayer):
                         participants = {}
                         for l in ['old', 'new']:
                             participants[l] = set([
-                                p.strip() for p in data.get(l, []) if p.strip()
+                                self.normalizeJid(p.strip())
+                                for p in data.get(l, [])
+                                if p.strip()
                             ])
                         to_add = participants['new'] - participants['old']
                         to_del = participants['old'] - participants['new']
@@ -196,6 +199,12 @@ class WebsupLayer(YowInterfaceLayer):
         ack = OutgoingAckProtocolEntity(entity.getId(), "receipt", "delivery")
         self.toLower(ack)
 
+    @ProtocolEntityCallback("ack")
+    def onAck(self, entity):
+        if entity.getClass() == "message":
+            # TODO: Sent
+            pass
+
     def message_send(self, number, content):
         logger.info('Sending message to %s: %s' % (number, content))
         outgoingMessage = TextMessageProtocolEntity(
@@ -282,11 +291,11 @@ class WebsupLayer(YowInterfaceLayer):
     @ProtocolEntityCallback("iq")
     def onIq(self, entity):
         if isinstance(entity, ListGroupsResultIqProtocolEntity):
-            logger.info('Group list results:')
+            msg = ['Group list results:']
             if entity.getGroups():
                 groups = []
                 for group in entity.getGroups():
-                    logger.info('- %s' % group)
+                    msg.append('- %s' % group)
                     groups.append({
                         'id': self.normalizeJid(group.getId()),
                         'owner': group.getOwner(),
@@ -302,9 +311,10 @@ class WebsupLayer(YowInterfaceLayer):
                 )
                 self.queue.put(item)
             else:
-                logger.info('- no groups')
+                msg.append('- no groups')
+            logger.info('\n'.join(msg))
         elif isinstance(entity, ListParticipantsResultIqProtocolEntity):
-            logger.info('Group %s participants:' % entity.getFrom())
+            msg = [ 'Group %s participants:' % entity.getFrom() ]
             if entity.getParticipants():
                 item = QueueItem(
                     item_type='group',
@@ -315,9 +325,10 @@ class WebsupLayer(YowInterfaceLayer):
                 )
                 self.queue.put(item)
                 for participant in entity.getParticipants():
-                    logger.info('- %s' % participant)
+                    msg.append('- %s' % participant)
             else:
-                logger.info('- no participants')
+                msg.append('- no participants')
+            logger.info('\n'.join(msg))
         elif isinstance(entity, SuccessCreateGroupsIqProtocolEntity):
             group = self.pending_iqs.get(entity.getId(), None)
             if group:
@@ -336,15 +347,10 @@ class WebsupLayer(YowInterfaceLayer):
                 )
                 self.queue.put(item)
         else:
-            logger.info(
-                'Iq received entity %s of class %s' % (
-                    entity.getId(), entity.__class__
-                )
-            )
+            logger.info('Iq received entity:\n%s' % entity.toProtocolTreeNode())
 
     @ProtocolEntityCallback("notification")
     def onNotification(self, entity):
-        logger.info('Notification received entity %s' % entity.__class__)
         if isinstance(entity, SubjectGroupsNotificationProtocolEntity):
             logger.info(
                 'Group %s new subject: "%s"' % (
@@ -391,7 +397,7 @@ class WebsupLayer(YowInterfaceLayer):
 #       elif isinstance(entity, UpdateContactNotificationProtocolEntity):
 #       elif isinstance(entity, PictureNotificationProtocolEntity):
         else:
-            logger.info('Notification received entity %s' % entity.__class__)
+            logger.info('Notification received entity:\n%s' % entity.toProtocolTreeNode())
 
     @ProtocolEntityCallback("presence")
     def onPresence(self, entity):

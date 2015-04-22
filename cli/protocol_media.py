@@ -4,6 +4,7 @@ from yowsup.layers.protocol_media.protocolentities \
 from yowsup.layers.protocol_media.protocolentities \
     import ImageDownloadableMediaMessageProtocolEntity as ImageMediaEntity
 
+
 class MediaProtocolLayer(YowMediaProtocolLayer):
     def recvMessageStanza(self, node):
         if node.getAttributeValue("type") == "media":

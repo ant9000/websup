@@ -7,8 +7,8 @@ from yowsup import env
 from yowsup.env import S40YowsupEnv
 import sys
 import gevent
-from .protocol_media import MediaProtocolLayer
-from .protocol_group import GroupProtocolLayer
+from .protocol.media import MediaProtocolLayer
+from .protocol.groups import GroupProtocolLayer
 from .layer import WebsupLayer
 import logging
 logger = logging.getLogger(__name__)

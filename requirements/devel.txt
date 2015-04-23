@@ -1,4 +1,4 @@
 ipython
 pep8
 -r base.txt
-git+https://github.com/tgalal/yowsup.git@master
+git+https://github.com/ant9000/yowsup.git@master

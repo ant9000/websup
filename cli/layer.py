@@ -19,7 +19,7 @@ from yowsup.layers.protocol_groups.protocolentities import \
     SuccessCreateGroupsIqProtocolEntity, \
     SubjectGroupsIqProtocolEntity, \
     SubjectGroupsNotificationProtocolEntity, \
-    DeleteGroupsIqProtocolEntity, \
+    LeaveGroupsIqProtocolEntity, \
     AddParticipantsIqProtocolEntity, \
     SuccessAddParticipantsIqProtocolEntity, \
     RemoveParticipantsIqProtocolEntity, \
@@ -76,9 +76,9 @@ class WebsupLayer(YowInterfaceLayer):
                     if data.get('group_id', None) and \
                             data.get('subject', None):
                         self.group_subject(data['group_id'], data['subject'])
-                elif data['command'] == 'delete':
+                elif data['command'] == 'leave':
                     if data.get('group_id', None):
-                        self.group_delete(data['group_id'])
+                        self.group_leave(data['group_id'])
                 elif data['command'] == 'participants':
                     if data.get('group_id', None):
                         self.group_participants(data['group_id'])
@@ -226,10 +226,9 @@ class WebsupLayer(YowInterfaceLayer):
         logger.info('Creating new group with subject "%s"' % subject)
         self.toLower(entity)
 
-    def group_delete(self, group_id):
-        # TODO: does not work
-        entity = DeleteGroupsIqProtocolEntity(self.normalizeJid(group_id))
-        logger.info('Deleting group %s.' % group_id)
+    def group_leave(self, group_id):
+        entity = LeaveGroupsIqProtocolEntity([self.normalizeJid(group_id)])
+        logger.info('Leaving group %s.' % group_id)
         self.toLower(entity)
 
     def group_subject(self, group_id, subject):

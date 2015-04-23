@@ -49,7 +49,7 @@
     <script type="text/ng-template" id="editGroup.html">
         <div class="modal-header">
            <h3 ng-if="!group.id" class="modal-title">Add new group</h3>
-           <h3 ng-if="group.id" class="modal-title">Change group subject</h3>
+           <h3 ng-if="group.id" class="modal-title">Edit group</h3>
         </div>
         <div class="modal-body">
            <form>
@@ -64,9 +64,8 @@
                      ng-model="group.participants" ng-list="&#10;" ng-trim="false" />
               </div>
               <div ng-if="group.id" class="checkbox">
-                <label for="delete">
-                  <input type="checkbox" id="delete" ng-model="group.delete" />
-                  Delete group?
+                <label for="leave">
+                  <input type="checkbox" id="leave" ng-model="group.leave" /> Leave group?
                 </label>
               </div>
            </form>

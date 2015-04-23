@@ -171,9 +171,9 @@ websupControllers.controller('GroupsCtrl', ['$scope', '$window', '$modal', 'sock
     var initial = angular.copy(group);
     modalInstance.result.then(function(group) {
       $log.log('Edit group: ',group, initial);
-      if(group.delete){
-        $log.log('Delete group: ', group.id);
-        socket.send({ type: 'group', command: 'delete', 'group_id': group.id });
+      if(group.leave){
+        $log.log('Leaving group: ', group.id);
+        socket.send({ type: 'group', command: 'leave', 'group_id': group.id });
         return; // no need to change anything else
       }
       if(group.subject && (group.subject != initial.subject)){

@@ -7,7 +7,6 @@ from yowsup import env
 from yowsup.env import S40YowsupEnv
 import sys
 import gevent
-from .protocol.media import MediaProtocolLayer
 from .protocol.groups import GroupProtocolLayer
 from .layer import WebsupLayer
 import logging
@@ -25,10 +24,9 @@ class WebsupStack(object):
         if encryptionEnabled:
             stackBuilder.push(YowAxolotlLayer)
         protocolLayers = YowStackBuilder.getProtocolLayers(
-            groups=False, media=False, privacy=True
+            groups=False, media=True, privacy=True
         )
         protocolLayers += (
-            MediaProtocolLayer,
             GroupProtocolLayer,
         )
         stackBuilder.push(YowParallelLayer(protocolLayers))

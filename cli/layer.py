@@ -141,7 +141,7 @@ class WebsupLayer(YowInterfaceLayer):
             thumb = entity.getPreview() or ''
             media_type = entity.getMediaType()
             if media_type in ["image", "video"]:
-                text = myemoji.escape(entity.getCaption() or '')
+                text = myemoji.escape(entity.caption or '')
             elif media_type == "audio":
                 text = ''  # audio has no caption
             elif media_type == "location":

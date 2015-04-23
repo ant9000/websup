@@ -28,6 +28,7 @@ from yowsup.layers.protocol_groups.protocolentities.\
     notification_groups_create import CreateGroupsNotificationProtocolEntity
 from yowsup.layers.protocol_groups.structs.group import Group
 
+from .protocol.entities import SuccessLeaveGroupsIqProtocolEntity
 from .queue import QueueItem
 from . import myemoji
 import os
@@ -260,6 +261,7 @@ class WebsupLayer(YowInterfaceLayer):
         item = QueueItem(
             item_type='session',
             content={
+                'phone': self.getOwnJid(),
                 'status': 'logged in',
             },
         )
@@ -348,6 +350,15 @@ class WebsupLayer(YowInterfaceLayer):
             for participant in entity.participantList:
                msg.append('- %s' % participant)
             logger.info('\n'.join(msg))
+        elif isinstance(entity, SuccessLeaveGroupsIqProtocolEntity):
+            item = QueueItem(
+                item_type='group-leave',
+                content={
+                    'id': entity.groupId,
+                }
+            )
+            self.queue.put(item)
+            logger.info('Group %s left' % entity.groupId)
         else:
             logger.info(
                 'Iq received entity:\n%s' % entity.toProtocolTreeNode()

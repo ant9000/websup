@@ -29,15 +29,18 @@
             <div class="panel-heading">
                 <div class="panel-title {{ connection_state }}" id="connection">
                     <h3>Websup!</h3>
+<!--
                     <div>
-                      <img ng-if="photo" ng-src="photo" />
-                      <span ng-if="chat_name">{{ chat_name }}</span>
-                      <span ng-if="status">{{ status }}</span>
+                      <img ng-if="session.photo" ng-src="session.photo" />
+                      <span ng-if="session.phone">{{ session.phone }}</span>
+                      <span ng-if="session.chat_name">{{ session.chat_name }}</span>
+                      <span ng-if="session.status">{{ session.status }}</span>
                     </div>
+-->
                 </div>
             </div>
-            <div ng-if="username" class="panel-body">
-                Welcome, <b>{{ username }}</b>.
+            <div ng-if="session.username" class="panel-body">
+                Welcome, <b>{{ session.username }}</b>.
             </div>
             <div class="panel-footer">
                <div class="btn-group btn-group-sm" role="group">

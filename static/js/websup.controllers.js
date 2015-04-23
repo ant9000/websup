@@ -12,17 +12,14 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
     $scope.connection_state = state;
   });
   $scope.$on('session',function(evt,data){
-    $log.log('MainCtrl',data);
-    var session = data.content;
-    if(session.status=='connected'){
-      $scope.username = session.username;
-      $scope.phone = session.phone;
+    $scope.session = data.content;
+    if($scope.session.status=='connected'){
       $scope.refreshGroups();
-    }else if(session.status=='not authenticated'){
+    }else if($scope.session.status=='not authenticated'){
       $window.location = '/login';
-    }else if(session.status=='logged in'){
+    }else if($scope.session.status=='logged in'){
       // TODO
-    }else if(session.status=='error'){
+    }else if($scope.session.status=='error'){
       // TODO
     } 
   });
@@ -55,7 +52,6 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
     if(group.id == ($scope.current_group || group.id)){ $scope.setGroup(group.id,false); }
   }
   $scope.$on('group-list',function(evt,data){
-    $log.log('GroupsCtrl',evt,data);
     $scope.groups = [];
     $scope.groupIds = {};
     $scope.current_group = null;
@@ -64,11 +60,9 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
     for(var i=0;i<groups.length;i++){ updateGroup(groups[i]); }
   });
   $scope.$on('group',function(evt,data){
-    $log.log('GroupsCtrl',evt,data);
     updateGroup(data.content);
   });
   $scope.$on('group-add',function(evt,data){
-    $log.log('GroupsCtrl',evt,data);
     var group = data.content;
     var idx = $scope.groupIds[group.id];
     if(angular.isDefined(idx)){
@@ -77,12 +71,31 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
     }
   });
   $scope.$on('group-del',function(evt,data){
-    $log.log('GroupsCtrl',evt,data);
     var group = data.content;
     var idx = $scope.groupIds[group.id];
     if(angular.isDefined(idx)){
       $scope.groups[idx].participants = _.difference($scope.groups[idx].participants, group.participants);
       if($scope.current_group == group.id){ $scope.participants = $scope.groups[idx].participants; }
+    }
+  });
+  $scope.$on('group-leave',function(evt,data){
+    var group = data.content;
+    var idx = $scope.groupIds[group.id];
+    if(angular.isDefined(idx)){
+      var groups = _.first($scope.groups,idx).concat(_.rest($scope.groups,idx+1));
+      var groupIds = {};
+      angular.forEach($scope.groups,function(group,idx){ groupIds[group.id] = idx; });
+      $scope.groups = groups;
+      $scope.groupIds = groupIds;
+      if($scope.current_group == group.id){
+        if($scope.groups.length){
+          $scope.current_group = $scope.groups[0].id;
+          $scope.participants = $scope.groups[0].participants;
+        }else{
+          $scope.current_group = null;
+          $scope.participants = [];
+        }
+      }
     }
   });
   $scope.setGroup = function(group_id,set_to){

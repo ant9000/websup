@@ -14,25 +14,5 @@ class GroupProtocolLayer(YowGroupsProtocolLayer):
                     CreateGroupsNotificationProtocolEntity.
                     fromProtocolTreeNode(node)
                 )
-            elif node.getChild("add"):
-                participant = node.getChild("add").getChild(
-                    "participant"
-                ).getAttributeValue("jid")
-                logger.info(
-                    "Group %s: added participant %s" % (
-                        node["from"],
-                        participant,
-                    )
-                )
-            elif node.getChild("remove"):
-                participant = node.getChild("remove").getChild(
-                    "participant"
-                ).getAttributeValue("jid")
-                logger.info(
-                    "Group %s: removed participant %s" % (
-                        node["from"],
-                        participant,
-                    )
-                )
             else:
                 YowGroupsProtocolLayer.recvNotification(self, node)

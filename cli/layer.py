@@ -20,7 +20,10 @@ from yowsup.layers.protocol_groups.protocolentities import \
     SubjectGroupsIqProtocolEntity, \
     SubjectGroupsNotificationProtocolEntity, \
     DeleteGroupsIqProtocolEntity, \
-    AddParticipantsIqProtocolEntity
+    AddParticipantsIqProtocolEntity, \
+    SuccessAddParticipantsIqProtocolEntity, \
+    RemoveParticipantsIqProtocolEntity, \
+    SuccessRemoveParticipantsIqProtocolEntity
 from yowsup.layers.protocol_groups.protocolentities.\
     notification_groups_create import CreateGroupsNotificationProtocolEntity
 from yowsup.layers.protocol_groups.structs.group import Group
@@ -64,11 +67,8 @@ class WebsupLayer(YowInterfaceLayer):
                 self.message_send(number, content)
             elif item.item_type == 'group':
                 data = item.content
-                if data['command'] == 'groups-list':
+                if data['command'] == 'list':
                     self.groups_list()
-                elif data['command'] == 'group-participants':
-                    if data.get('group_id', None):
-                        self.group_participants(data['group_id'])
                 elif data['command'] == 'create':
                     if data.get('subject', None):
                         self.group_create(data['subject'])
@@ -81,6 +81,10 @@ class WebsupLayer(YowInterfaceLayer):
                         self.group_delete(data['group_id'])
                 elif data['command'] == 'participants':
                     if data.get('group_id', None):
+                        self.group_participants(data['group_id'])
+                elif data['command'] == 'participants-set':
+                    if data.get('group_id', None):
+                        group_id = data['group_id']
                         participants = {}
                         for l in ['old', 'new']:
                             participants[l] = set([
@@ -99,14 +103,10 @@ class WebsupLayer(YowInterfaceLayer):
                         )
                         logger.info('Participants to add: %s' % to_add)
                         logger.info('Participants to remove: %s' % to_del)
-                        for participant in to_add:
-                            self.group_participant_add(
-                                data['group_id'], participant
-                            )
-                        for participant in to_del:
-                            self.group_participant_del(
-                                data['group_id'], participant
-                            )
+                        if to_add:
+                            self.group_participants_add(group_id, to_add)
+                        if to_del:
+                            self.group_participants_del(group_id, to_del)
             return True
         elif name == YowNetworkLayer.EVENT_STATE_CONNECTED:
             logger.info("Connected")
@@ -239,18 +239,21 @@ class WebsupLayer(YowInterfaceLayer):
         logger.info('Change subject of group %s to "%s"' % (group_id, subject))
         self.toLower(entity)
 
-    def group_participant_add(self, group_id, participant):
+    def group_participants_add(self, group_id, participants):
         entity = AddParticipantsIqProtocolEntity(
             self.normalizeJid(group_id),
-            self.normalizeJid(participant),
+            [ self.normalizeJid(p) for p in participants],
         )
-        logger.info('Group %s, add participant %s' % (group_id, participant))
-        logger.info(entity.toProtocolTreeNode())
+        logger.info('Group %s, add participants %s' % (group_id, participants))
         self.toLower(entity)
 
-    def group_participant_del(self, group_id, participant):
-        # TODO
-        logger.info('Group %s, del participant %s' % (group_id, participant))
+    def group_participants_del(self, group_id, participants):
+        entity = RemoveParticipantsIqProtocolEntity(
+            self.normalizeJid(group_id),
+            [ self.normalizeJid(p) for p in participants],
+        )
+        logger.info('Group %s, del participants %s' % (group_id, participants))
+        self.toLower(entity)
 
     @ProtocolEntityCallback("success")
     def onSuccess(self, entity):
@@ -319,6 +322,32 @@ class WebsupLayer(YowInterfaceLayer):
                     msg.append('- %s' % participant)
             else:
                 msg.append('- no participants')
+            logger.info('\n'.join(msg))
+        elif isinstance(entity, SuccessAddParticipantsIqProtocolEntity):
+            item = QueueItem(
+                item_type='group-add',
+                content={
+                    'id': entity.groupId,
+                    'participants': entity.participantList,
+                }
+            )
+            self.queue.put(item)
+            msg = ['Group %s add participants:' % entity.groupId]
+            for participant in entity.participantList:
+               msg.append('- %s' % participant)
+            logger.info('\n'.join(msg))
+        elif isinstance(entity, SuccessRemoveParticipantsIqProtocolEntity):
+            item = QueueItem(
+                item_type='group-del',
+                content={
+                    'id': entity.groupId,
+                    'participants': entity.participantList,
+                }
+            )
+            self.queue.put(item)
+            msg = ['Group %s remove participants:' % entity.groupId]
+            for participant in entity.participantList:
+               msg.append('- %s' % participant)
             logger.info('\n'.join(msg))
         else:
             logger.info(

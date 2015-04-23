@@ -49,7 +49,7 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
     if(!angular.isDefined(idx)){
       idx = $scope.groups.length;
       $scope.groupIds[group.id] = idx;
-      $scope.groups.push({ group_id: group.id });
+      $scope.groups.push({ group_id: group.id, participants: [] });
     }
     angular.extend($scope.groups[idx],group);
     if(group.id == ($scope.current_group || group.id)){ $scope.setGroup(group.id,false); }
@@ -67,11 +67,29 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
     $log.log('GroupsCtrl',evt,data);
     updateGroup(data.content);
   });
+  $scope.$on('group-add',function(evt,data){
+    $log.log('GroupsCtrl',evt,data);
+    var group = data.content;
+    var idx = $scope.groupIds[group.id];
+    if(angular.isDefined(idx)){
+      $scope.groups[idx].participants = _.union($scope.groups[idx].participants, group.participants);
+      if($scope.current_group == group.id){ $scope.participants = $scope.groups[idx].participants; }
+    }
+  });
+  $scope.$on('group-del',function(evt,data){
+    $log.log('GroupsCtrl',evt,data);
+    var group = data.content;
+    var idx = $scope.groupIds[group.id];
+    if(angular.isDefined(idx)){
+      $scope.groups[idx].participants = _.difference($scope.groups[idx].participants, group.participants);
+      if($scope.current_group == group.id){ $scope.participants = $scope.groups[idx].participants; }
+    }
+  });
   $scope.setGroup = function(group_id,set_to){
     var idx = $scope.groupIds[group_id];
     if(angular.isDefined(idx)){
       $scope.current_group = group_id;
-      $scope.participants = $scope.groups[idx].participants || [];
+      $scope.participants = $scope.groups[idx].participants;
       if(set_to!==false){
         $scope.newmessage.to = group_id;
         $scope.newmessage.display =  $scope.groups[idx].subject || group_id;
@@ -79,8 +97,11 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
       }
     }
   }
-  $scope.refreshGroups = function(group_id){
-    socket.send({ type: 'group', 'command': 'groups-list' });
+  $scope.refreshGroups = function(){
+    socket.send({ type: 'group', command: 'list' });
+  }
+  $scope.groupParticipants = function(group_id){
+    socket.send({ type: 'group', command: 'participants', group_id: group_id });
   }
 
   // CONVERSATIONS
@@ -161,7 +182,7 @@ websupControllers.controller('GroupsCtrl', ['$scope', '$window', '$modal', 'sock
       }
       if(group.participants && (group.participants != initial.participants)){
         $log.log('Participants: ', group.participants, 'Initial: ', initial.participants);
-        socket.send({ type: 'group', command: 'participants', 'group_id': group.id, 'old': initial.participants, 'new': group.participants });
+        socket.send({ type: 'group', command: 'participants-set', 'group_id': group.id, 'old': initial.participants, 'new': group.participants });
       }
     }, function(){
       $log.log('Modal dismissed at: ' + new Date());

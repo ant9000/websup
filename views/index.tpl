@@ -12,6 +12,7 @@
     <link rel="stylesheet" href="/static/css/style.css">
 
     <script src="/static/js/jquery-1.11.2.min.js"></script>
+    <script src="/static/js/underscore-min.js"></script>
 
     <script src="/static/js/angular.min.js"></script>
     <script src="/static/js/angular-route.min.js"></script>

@@ -23,12 +23,11 @@ from yowsup.layers.protocol_groups.protocolentities import \
     AddParticipantsIqProtocolEntity, \
     SuccessAddParticipantsIqProtocolEntity, \
     RemoveParticipantsIqProtocolEntity, \
-    SuccessRemoveParticipantsIqProtocolEntity
-from yowsup.layers.protocol_groups.protocolentities.\
-    notification_groups_create import CreateGroupsNotificationProtocolEntity
+    SuccessRemoveParticipantsIqProtocolEntity, \
+    SuccessLeaveGroupsIqProtocolEntity, \
+    CreateGroupsNotificationProtocolEntity
 from yowsup.layers.protocol_groups.structs.group import Group
 
-from .protocol.entities import SuccessLeaveGroupsIqProtocolEntity
 from .queue import QueueItem
 from . import myemoji
 import os

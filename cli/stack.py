@@ -1,13 +1,11 @@
 from yowsup.stacks import YowStackBuilder
-from yowsup.layers.axolotl import YowAxolotlLayer
 from yowsup.layers.network import YowNetworkLayer
 from yowsup.layers.auth import AuthError
-from yowsup.layers import YowLayerEvent, YowParallelLayer
+from yowsup.layers import YowLayerEvent
 from yowsup import env
 from yowsup.env import S40YowsupEnv
 import sys
 import gevent
-from .protocol.groups import GroupProtocolLayer
 from .layer import WebsupLayer
 import logging
 logger = logging.getLogger(__name__)
@@ -16,22 +14,12 @@ logger = logging.getLogger(__name__)
 class WebsupStack(object):
     def __init__(self, credentials, encryptionEnabled=False):
         stackBuilder = YowStackBuilder()
-
         if not encryptionEnabled:
             env.CURRENT_ENV = S40YowsupEnv()
-
-        stackBuilder.layers = YowStackBuilder.getCoreLayers()
-        if encryptionEnabled:
-            stackBuilder.push(YowAxolotlLayer)
-        protocolLayers = YowStackBuilder.getProtocolLayers(
-            groups=False, media=True, privacy=True
-        )
-        protocolLayers += (
-            GroupProtocolLayer,
-        )
-        stackBuilder.push(YowParallelLayer(protocolLayers))
-        stackBuilder.push(WebsupLayer)
-        self.stack = stackBuilder.build()
+        self.stack = stackBuilder\
+            .pushDefaultLayers(encryptionEnabled)\
+            .push(WebsupLayer)\
+            .build()
         self.stack.setCredentials(credentials)
 
     def start(self, queue):

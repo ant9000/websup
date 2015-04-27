@@ -113,8 +113,8 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
   $scope.refreshGroups = function(){
     socket.send({ type: 'group', command: 'list' });
   }
-  $scope.groupParticipants = function(group_id){
-    socket.send({ type: 'group', command: 'participants', group_id: group_id });
+  $scope.groupInfo = function(group_id){
+    socket.send({ type: 'group', command: 'info', group_id: group_id });
   }
 
   // CONVERSATIONS

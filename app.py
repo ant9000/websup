@@ -251,7 +251,7 @@ def queue_consumer():
                 elif item.item_type == 'group':
                     if 'participants' in item.content:
                         item.content['participants'] = [
-                            p for p in item.content['participants']
+                            p for p,t in item.content['participants']
                             if p.split('@')[0] != phone
                         ]
                 else:

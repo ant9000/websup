@@ -13,8 +13,8 @@ from yowsup.layers.network import YowNetworkLayer
 from yowsup.layers.protocol_groups.protocolentities import \
     ListGroupsIqProtocolEntity, \
     ListGroupsResultIqProtocolEntity, \
-    ParticipantsGroupsIqProtocolEntity, \
-    ListParticipantsResultIqProtocolEntity, \
+    InfoGroupsIqProtocolEntity, \
+    InfoGroupsResultIqProtocolEntity, \
     CreateGroupsIqProtocolEntity, \
     SuccessCreateGroupsIqProtocolEntity, \
     SubjectGroupsIqProtocolEntity, \
@@ -79,9 +79,9 @@ class WebsupLayer(YowInterfaceLayer):
                 elif data['command'] == 'leave':
                     if data.get('group_id', None):
                         self.group_leave(data['group_id'])
-                elif data['command'] == 'participants':
+                elif data['command'] == 'info':
                     if data.get('group_id', None):
-                        self.group_participants(data['group_id'])
+                        self.group_info(data['group_id'])
                 elif data['command'] == 'participants-set':
                     if data.get('group_id', None):
                         group_id = data['group_id']
@@ -214,11 +214,11 @@ class WebsupLayer(YowInterfaceLayer):
         logger.info('Asking for groups list.')
         self.toLower(entity)
 
-    def group_participants(self, group_id):
-        entity = ParticipantsGroupsIqProtocolEntity(
+    def group_info(self, group_id):
+        entity = InfoGroupsIqProtocolEntity(
             self.normalizeJid(group_id)
         )
-        logger.info('Group %s, asking for participants.' % group_id)
+        logger.info('Group %s, asking for info.' % group_id)
         self.toLower(entity)
 
     def group_create(self, subject):
@@ -296,7 +296,7 @@ class WebsupLayer(YowInterfaceLayer):
                         'subject-owner': group.getSubjectOwner(),
                         'subject-time': group.getSubjectTime(),
                     })
-                    self.group_participants(group.getId())
+                    self.group_info(group.getId())
                 item = QueueItem(
                     item_type='group-list',
                     content={
@@ -307,19 +307,23 @@ class WebsupLayer(YowInterfaceLayer):
             else:
                 msg.append('- no groups')
             logger.info('\n'.join(msg))
-        elif isinstance(entity, ListParticipantsResultIqProtocolEntity):
-            msg = ['Group %s participants:' % entity.getFrom()]
+        elif isinstance(entity, InfoGroupsResultIqProtocolEntity):
+            msg = ['Group %s participants:' % entity.groupId]
             if entity.getParticipants():
                 item = QueueItem(
                     item_type='group',
                     content={
-                        'id': entity.getFrom(),
-                        'participants': entity.getParticipants(),
+                        'id': self.normalizeJid(entity.groupId),
+                        'participants': entity.getParticipants().items(),
+                        'admins': dict([
+                            (p,True) for p,t in entity.getParticipants().items()
+                            if t == 'admin'
+                        ]),
                     }
                 )
                 self.queue.put(item)
-                for participant in entity.getParticipants():
-                    msg.append('- %s' % participant)
+                for participant, role in entity.getParticipants().items():
+                    msg.append('- %s %s' % (participant, role and role or ''))
             else:
                 msg.append('- no participants')
             logger.info('\n'.join(msg))

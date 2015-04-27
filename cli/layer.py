@@ -242,7 +242,7 @@ class WebsupLayer(YowInterfaceLayer):
     def group_participants_add(self, group_id, participants):
         entity = AddParticipantsIqProtocolEntity(
             self.normalizeJid(group_id),
-            [ self.normalizeJid(p) for p in participants],
+            [self.normalizeJid(p) for p in participants],
         )
         logger.info('Group %s, add participants %s' % (group_id, participants))
         self.toLower(entity)
@@ -250,7 +250,7 @@ class WebsupLayer(YowInterfaceLayer):
     def group_participants_del(self, group_id, participants):
         entity = RemoveParticipantsIqProtocolEntity(
             self.normalizeJid(group_id),
-            [ self.normalizeJid(p) for p in participants],
+            [self.normalizeJid(p) for p in participants],
         )
         logger.info('Group %s, del participants %s' % (group_id, participants))
         self.toLower(entity)
@@ -335,7 +335,7 @@ class WebsupLayer(YowInterfaceLayer):
             self.queue.put(item)
             msg = ['Group %s add participants:' % entity.groupId]
             for participant in entity.participantList:
-               msg.append('- %s' % participant)
+                msg.append('- %s' % participant)
             logger.info('\n'.join(msg))
         elif isinstance(entity, SuccessRemoveParticipantsIqProtocolEntity):
             item = QueueItem(
@@ -348,7 +348,7 @@ class WebsupLayer(YowInterfaceLayer):
             self.queue.put(item)
             msg = ['Group %s remove participants:' % entity.groupId]
             for participant in entity.participantList:
-               msg.append('- %s' % participant)
+                msg.append('- %s' % participant)
             logger.info('\n'.join(msg))
         elif isinstance(entity, SuccessLeaveGroupsIqProtocolEntity):
             item = QueueItem(

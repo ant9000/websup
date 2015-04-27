@@ -4,7 +4,7 @@ from yowsup.layers.protocol_groups.protocolentities.\
     import CreateGroupsNotificationProtocolEntity
 from yowsup.layers.protocol_groups.protocolentities \
     import LeaveGroupsIqProtocolEntity
-from .entities import SuccessLeaveGroupsIqProtocolEntity 
+from .entities import SuccessLeaveGroupsIqProtocolEntity
 import logging
 logger = logging.getLogger(__name__)
 
@@ -12,13 +12,17 @@ logger = logging.getLogger(__name__)
 class GroupProtocolLayer(YowGroupsProtocolLayer):
     def sendIq(self, entity):
         if entity.__class__ == LeaveGroupsIqProtocolEntity:
-            self._sendIq(entity, self.onLeaveGroupSuccess, self.onLeaveGroupFailed)
+            self._sendIq(
+                entity, self.onLeaveGroupSuccess, self.onLeaveGroupFailed
+            )
         else:
             YowGroupsProtocolLayer.sendIq(self, entity)
 
     def onLeaveGroupSuccess(self, node, originalIqEntity):
         logger.info("Group leave success")
-        self.toUpper(SuccessLeaveGroupsIqProtocolEntity.fromProtocolTreeNode(node))
+        self.toUpper(
+            SuccessLeaveGroupsIqProtocolEntity.fromProtocolTreeNode(node)
+        )
 
     def onLeaveGroupFailed(self, node, originalIqEntity):
         logger.error("Group leave failed")

@@ -250,10 +250,13 @@ def queue_consumer():
                     logger.info('msg %s "%s"', direction, msg[direction])
                 elif item.item_type == 'group':
                     if 'participants' in item.content:
-                        item.content['participants'] = [
-                            p for p,t in item.content['participants']
-                            if p.split('@')[0] != phone
-                        ]
+                        item.content['participants'] = []
+                        item.content['admin'] = False
+                        for p, role in item.content['participants']:
+                            if p.split('@')[0] != phone:
+                                item.content['participants'].append(p)
+                            else:
+                                item.content['admin'] = (role == "admin")
                 else:
                     pass
                 # if received via web, push it to Whatsapp

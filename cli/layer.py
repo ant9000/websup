@@ -315,10 +315,6 @@ class WebsupLayer(YowInterfaceLayer):
                     content={
                         'id': self.normalizeJid(entity.groupId),
                         'participants': entity.getParticipants().items(),
-                        'admins': dict([
-                            (p,True) for p,t in entity.getParticipants().items()
-                            if t == 'admin'
-                        ]),
                     }
                 )
                 self.queue.put(item)

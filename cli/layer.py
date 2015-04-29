@@ -314,7 +314,16 @@ class WebsupLayer(YowInterfaceLayer):
                     item_type='group',
                     content={
                         'id': self.normalizeJid(entity.groupId),
-                        'participants': entity.getParticipants().items(),
+                        'participants': [
+                             p for p,t in entity.getParticipants().items()
+                        ],
+                        'admin': (
+                            self.normalizeJid(self.getOwnJid()) in [
+                                self.normalizeJid(p)
+                                for p,t in entity.getParticipants().items()
+                                if t == 'admin'
+                            ]
+                        ),
                     }
                 )
                 self.queue.put(item)
@@ -391,12 +400,16 @@ class WebsupLayer(YowInterfaceLayer):
                 item_type='group',
                 content={
                     'id': self.normalizeJid(entity.getGroupId()),
-                    'owner': entity.getCreatorJid(),
+                    'owner': self.normalizeJid(entity.getCreatorJid()),
                     'created': entity.getCreationTimestamp(),
                     'subject': entity.getSubject(),
                     'subject-owner': entity.getSubjectOwnerJid(),
                     'subject-time': entity.getSubjectTimestamp(),
-                    'participants': entity.getParticipants(),
+                    'participants': entity.getParticipants(), 
+                    'admin': (
+                        self.normalizeJid(self.getOwnJid()) == \
+                            self.normalizeJid(entity.getCreatorJid())
+                    ),
                 }
             )
             self.queue.put(item)

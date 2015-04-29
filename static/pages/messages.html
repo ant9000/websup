@@ -4,7 +4,7 @@
         <div class="col-md-4">
             <div id="conversations-list" class="list-group">
                 <div ng-repeat="conversation in conversations | orderBy:'-last_timestamp'"
-                     class="conversation list-group-item" ng-class="{ active: conversation.number == current_conversation }"
+                     class="conversation list-group-item" ng-class="{ active: conversation.number == current_conversation.number }"
                      ng-click="setConversation(conversation.number)">
                   <span class="glyphicon" ng-class="conversation.is_group?'glyphicon-menu-hamburger':'glyphicon-user'"></span>
                   <strong>{{ conversation.display || conversation.number|cutDomain }}</strong>
@@ -13,7 +13,7 @@
             </div>
         </div>
         <div class="col-md-4">
-            <div ng-if="messages.length" ng-repeat="message in messages" id="messages-container">
+            <div ng-if="current_conversation.messages.length" ng-repeat="message in current_conversation.messages" id="messages-container">
                  <div class="bubble" ng-class="{ own: message.own }">
 
                    <div class="pull-right">

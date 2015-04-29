@@ -249,14 +249,7 @@ def queue_consumer():
                     mailer.send_email(email_to, subj, body)
                     logger.info('msg %s "%s"', direction, msg[direction])
                 elif item.item_type == 'group':
-                    if 'participants' in item.content:
-                        item.content['participants'] = []
-                        item.content['admin'] = False
-                        for p, role in item.content['participants']:
-                            if p.split('@')[0] != phone:
-                                item.content['participants'].append(p)
-                            else:
-                                item.content['admin'] = (role == "admin")
+                    pass
                 else:
                     pass
                 # if received via web, push it to Whatsapp

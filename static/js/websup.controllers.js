@@ -120,7 +120,6 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
   // CONVERSATIONS
   $scope.conversations = [];
   $scope.conversationIds = {};
-  $scope.messages = [];
   $scope.current_conversation = null;
   $scope.$on('message',function(evt,data){
     $log.log('MessagesCtrl',data);
@@ -151,8 +150,7 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
   $scope.setConversation = function(number,set_to){
     var idx = $scope.conversationIds[number];
     if(angular.isDefined(idx)){
-      $scope.current_conversation = number;
-      $scope.messages = $scope.conversations[idx]['messages'];
+      $scope.current_conversation = $scope.conversations[idx];
       if(set_to!==false){
         $scope.newmessage.to = number;
         $scope.newmessage.display = $scope.conversations[idx].display;

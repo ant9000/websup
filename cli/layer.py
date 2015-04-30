@@ -40,10 +40,12 @@ logger = logging.getLogger(__name__)
 class WebsupLayer(YowInterfaceLayer):
     EVENT_START = "org.openwhatsapp.yowsup.event.cli.start"
     EVENT_DISPATCH = "org.openwhatsapp.yowsup.event.cli.dispatch"
+    CONNECTION_RETRY_MAX = 5
 
     def __init__(self):
         YowInterfaceLayer.__init__(self)
         self.queue = None
+        self.connection_retry_count = 0
 
     def normalizeJid(self, number):
         if "@" in number:
@@ -57,7 +59,8 @@ class WebsupLayer(YowInterfaceLayer):
         logger.info("Event %s", name)
         if name == self.__class__.EVENT_START:
             self.queue = layerEvent.getArg('queue')
-            logger.info("Started.")
+            logger.info("Started, requesting connection.")
+            self.connect()
             return True
         elif name == self.__class__.EVENT_DISPATCH:
             item = layerEvent.getArg('item')
@@ -112,6 +115,14 @@ class WebsupLayer(YowInterfaceLayer):
             logger.info("Connected")
         elif name == YowNetworkLayer.EVENT_STATE_DISCONNECTED:
             logger.warning("Disconnected: %s", layerEvent.getArg('reason'))
+            # try reconnecting
+            if self.connection_retry_count < self.__class__.CONNECTION_RETRY_MAX:
+                self.connection_retry_count += 1
+                logger.warning("Reconnection attempt #%d", self.connection_retry_count)
+                self.connect()
+            else:
+                logger.error("FATAL: cannot reconnect.")
+                pass
 
     @ProtocolEntityCallback("message")
     def onMessage(self, entity):
@@ -256,6 +267,7 @@ class WebsupLayer(YowInterfaceLayer):
 
     @ProtocolEntityCallback("success")
     def onSuccess(self, entity):
+        self.connection_retry_count = 0
         self.connected = True
         item = QueueItem(
             item_type='session',
@@ -423,3 +435,10 @@ class WebsupLayer(YowInterfaceLayer):
     @ProtocolEntityCallback("presence")
     def onPresence(self, entity):
         logger.info('Presence received entity %s' % entity)
+
+    @ProtocolEntityCallback("stream:error")
+    def onStreamError(self, entity):
+        logger.error('Stream error %s' % entity)
+        self.disconnect()
+        logger.error('Requested disconnect')
+

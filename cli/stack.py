@@ -1,5 +1,4 @@
 from yowsup.stacks import YowStackBuilder
-from yowsup.layers.network import YowNetworkLayer
 from yowsup.layers.auth import AuthError
 from yowsup.layers import YowLayerEvent
 from yowsup import env
@@ -25,9 +24,6 @@ class WebsupStack(object):
     def start(self, queue):
         self.stack.broadcastEvent(
             YowLayerEvent(WebsupLayer.EVENT_START, queue=queue)
-        )
-        self.stack.broadcastEvent(
-            YowLayerEvent(YowNetworkLayer.EVENT_STATE_CONNECT)
         )
         try:
             while True:

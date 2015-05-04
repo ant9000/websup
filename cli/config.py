@@ -13,9 +13,10 @@ username = admin
 password = admin
 
 [email]
-from =
+; 'to' empty disables email forwarding
 to =
-; recognized format:
+from =
+; 'server' recognized format:
 ; (smtp|starttls|ssl)://[username:password@]<hostname or ip>[:port]
 server =
 """

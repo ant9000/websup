@@ -62,16 +62,18 @@ configuration is correct.
     sys.exit(2)
 
 try:
-    email_from = cfg.get('email', 'from')
+    mailer = None
     email_to = cfg.get('email', 'to')
-    email_server = cfg.get('email', 'server')
-    if not email_from:
-        raise NoOptionError('from', 'email')
-    if not email_to:
-        raise NoOptionError('to', 'email')
-    if not email_server:
-        raise NoOptionError('server', 'email')
-    mailer = Mailer(email_from, email_server)
+    if email_to:
+        email_from = cfg.get('email', 'from')
+        email_server = cfg.get('email', 'server')
+        if not email_from:
+            raise NoOptionError('from', 'email')
+        if not email_server:
+            raise NoOptionError('server', 'email')
+        mailer = Mailer(email_from, email_server)
+    else:
+        print "WARNING: no email destination - smtp forwarding disabled."
 except Exception, e:
     print """
 ERROR: %s
@@ -242,11 +244,14 @@ def queue_consumer():
                 if item.item_type == 'message':
                     msg = item.content
                     direction = msg.get('own', False) and "to" or "from"
-                    # send message via email
-                    subj = '[Whatsapp] conversation with %s' % msg[direction]
-                    subj = unicode(subj).encode('utf-8')
-                    body = bottle.template('email', message=msg).encode('utf8')
-                    mailer.send_email(email_to, subj, body)
+                    if mailer:
+                        # send message via email
+                        subj = '[Whatsapp] conversation with %s' % \
+                            msg[direction]
+                        subj = unicode(subj).encode('utf-8')
+                        body = bottle.template('email', message=msg).\
+                            encode('utf8')
+                        mailer.send_email(email_to, subj, body)
                     logger.info('msg %s "%s"', direction, msg[direction])
                 elif item.item_type == 'group':
                     pass

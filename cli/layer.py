@@ -209,7 +209,7 @@ class WebsupLayer(YowInterfaceLayer):
     @ProtocolEntityCallback("receipt")
     def onReceipt(self, entity):
         ack = OutgoingAckProtocolEntity(
-            entity.getId(), "receipt", "delivery", entity.getFrom()
+            entity.getId(), "receipt", entity.getType(), entity.getFrom()
         )
         self.toLower(ack)
 

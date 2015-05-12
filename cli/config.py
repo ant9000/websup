@@ -7,6 +7,7 @@ class Config(RawConfigParser):
     DEFAULT_CFG = """[whatsapp]
 phone =
 password =
+name =
 
 [webpage]
 username = admin

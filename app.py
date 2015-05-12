@@ -30,6 +30,7 @@ try:
         raise NoOptionError('phone', 'whatsapp')
     if not password:
         raise NoOptionError('password', 'whatsapp')
+    name = cfg.get('whatsapp', 'name')
 except Exception, e:
     print """
 ERROR: %s
@@ -85,7 +86,7 @@ configuration is correct.
 
 logger = logging.getLogger()
 queue = Queue()
-stack = stack.WebsupStack((phone, password))
+stack = stack.WebsupStack((phone, password), name)
 session_opts = {
     'session.cookie_expires': True,
     'session.auto': True,

@@ -11,7 +11,7 @@ logger = logging.getLogger(__name__)
 
 
 class WebsupStack(object):
-    def __init__(self, credentials, encryptionEnabled=False):
+    def __init__(self, credentials, name, encryptionEnabled=False):
         stackBuilder = YowStackBuilder()
         if not encryptionEnabled:
             env.CURRENT_ENV = S40YowsupEnv()
@@ -20,6 +20,7 @@ class WebsupStack(object):
             .push(WebsupLayer)\
             .build()
         self.stack.setCredentials(credentials)
+        self.stack.setProp('name', name)
 
     def start(self, queue):
         self.stack.broadcastEvent(

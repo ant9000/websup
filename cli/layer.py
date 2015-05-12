@@ -27,6 +27,8 @@ from yowsup.layers.protocol_groups.protocolentities import \
     SuccessLeaveGroupsIqProtocolEntity, \
     CreateGroupsNotificationProtocolEntity
 from yowsup.layers.protocol_groups.structs.group import Group
+from yowsup.layers.protocol_presence.protocolentities import \
+    PresenceProtocolEntity
 
 from .queue import QueueItem
 from . import myemoji
@@ -116,9 +118,11 @@ class WebsupLayer(YowInterfaceLayer):
         elif name == YowNetworkLayer.EVENT_STATE_DISCONNECTED:
             logger.warning("Disconnected: %s", layerEvent.getArg('reason'))
             # try reconnecting
-            if self.connection_retry_count < self.__class__.CONNECTION_RETRY_MAX:
+            if self.connection_retry_count < self.CONNECTION_RETRY_MAX:
                 self.connection_retry_count += 1
-                logger.warning("Reconnection attempt #%d", self.connection_retry_count)
+                logger.warning(
+                    "Reconnection attempt #%d", self.connection_retry_count
+                )
                 self.connect()
             else:
                 logger.error("FATAL: cannot reconnect.")
@@ -204,7 +208,9 @@ class WebsupLayer(YowInterfaceLayer):
 
     @ProtocolEntityCallback("receipt")
     def onReceipt(self, entity):
-        ack = OutgoingAckProtocolEntity(entity.getId(), "receipt", "delivery")
+        ack = OutgoingAckProtocolEntity(
+            entity.getId(), "receipt", "delivery", entity.getFrom()
+        )
         self.toLower(ack)
 
     @ProtocolEntityCallback("ack")
@@ -215,8 +221,13 @@ class WebsupLayer(YowInterfaceLayer):
 
     def message_send(self, number, content):
         logger.info('Sending message to %s: %s' % (number, content))
+        kwargs = {}
+        name = self.getProp("name")
+        if name:
+            kwargs['notify'] = name
         outgoingMessage = TextMessageProtocolEntity(
-            content.encode('utf-8'), to=self.normalizeJid(number)
+            content.encode('utf-8'), to=self.normalizeJid(number),
+            **kwargs
         )
         self.toLower(outgoingMessage)
 
@@ -269,6 +280,10 @@ class WebsupLayer(YowInterfaceLayer):
     def onSuccess(self, entity):
         self.connection_retry_count = 0
         self.connected = True
+        name = self.getProp("name")
+        if name:
+            entity = PresenceProtocolEntity(name=name)
+            self.toLower(entity)
         item = QueueItem(
             item_type='session',
             content={
@@ -327,12 +342,12 @@ class WebsupLayer(YowInterfaceLayer):
                     content={
                         'id': self.normalizeJid(entity.groupId),
                         'participants': [
-                             p for p,t in entity.getParticipants().items()
+                             p for p, t in entity.getParticipants().items()
                         ],
                         'admin': (
                             self.normalizeJid(self.getOwnJid()) in [
                                 self.normalizeJid(p)
-                                for p,t in entity.getParticipants().items()
+                                for p, t in entity.getParticipants().items()
                                 if t == 'admin'
                             ]
                         ),
@@ -417,10 +432,10 @@ class WebsupLayer(YowInterfaceLayer):
                     'subject': entity.getSubject(),
                     'subject-owner': entity.getSubjectOwnerJid(),
                     'subject-time': entity.getSubjectTimestamp(),
-                    'participants': entity.getParticipants(), 
+                    'participants': entity.getParticipants(),
                     'admin': (
-                        self.normalizeJid(self.getOwnJid()) == \
-                            self.normalizeJid(entity.getCreatorJid())
+                        self.normalizeJid(self.getOwnJid()) ==
+                          self.normalizeJid(entity.getCreatorJid())
                     ),
                 }
             )
@@ -441,4 +456,3 @@ class WebsupLayer(YowInterfaceLayer):
         logger.error('Stream error %s' % entity)
         self.disconnect()
         logger.error('Requested disconnect')
-

@@ -317,13 +317,22 @@ class WebsupLayer(YowInterfaceLayer):
                     msg.append('- %s' % group)
                     groups.append({
                         'id': self.normalizeJid(group.getId()),
-                        'owner': group.getOwner(),
+                        'creator': group.getCreator(),
                         'created': group.getCreationTime(),
                         'subject': group.getSubject(),
                         'subject-owner': group.getSubjectOwner(),
                         'subject-time': group.getSubjectTime(),
+                        'participants': [
+                             p for p, t in group.getParticipants().items()
+                        ],
+                        'admin': (
+                            self.normalizeJid(self.getOwnJid()) in [
+                                self.normalizeJid(p)
+                                for p, t in group.getParticipants().items()
+                                if t == 'admin'
+                            ]
+                        ),
                     })
-                    self.group_info(group.getId())
                 item = QueueItem(
                     item_type='group-list',
                     content={
@@ -427,7 +436,7 @@ class WebsupLayer(YowInterfaceLayer):
                 item_type='group',
                 content={
                     'id': self.normalizeJid(entity.getGroupId()),
-                    'owner': self.normalizeJid(entity.getCreatorJid()),
+                    'creator': self.normalizeJid(entity.getCreatorJid()),
                     'created': entity.getCreationTimestamp(),
                     'subject': entity.getSubject(),
                     'subject-owner': entity.getSubjectOwnerJid(),

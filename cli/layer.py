@@ -76,7 +76,10 @@ class WebsupLayer(YowInterfaceLayer):
                     self.groups_list()
                 elif data['command'] == 'create':
                     if data.get('subject', None):
-                        self.group_create(data['subject'])
+                        self.group_create(
+                            data['subject'],
+                            data.get('participants', [])
+                        )
                 elif data['command'] == 'subject':
                     if data.get('group_id', None) and \
                             data.get('subject', None):
@@ -243,9 +246,18 @@ class WebsupLayer(YowInterfaceLayer):
         logger.info('Group %s, asking for info.' % group_id)
         self.toLower(entity)
 
-    def group_create(self, subject):
-        entity = CreateGroupsIqProtocolEntity(subject)
-        logger.info('Creating new group with subject "%s"' % subject)
+    def group_create(self, subject, participants):
+        me = self.normalizeJid(self.getOwnJid())
+        if me not in participants:
+            participants.insert(0, me)
+        entity = CreateGroupsIqProtocolEntity(
+            subject, participants=participants
+        )
+        logger.info(
+            'Creating new group with subject "%s" and participants %s' % (
+                subject, ', '.join(participants)
+            )
+        )
         self.toLower(entity)
 
     def group_leave(self, group_id):
@@ -369,31 +381,11 @@ class WebsupLayer(YowInterfaceLayer):
                 msg.append('- no participants')
             logger.info('\n'.join(msg))
         elif isinstance(entity, SuccessAddParticipantsIqProtocolEntity):
-            item = QueueItem(
-                item_type='group-add',
-                content={
-                    'id': entity.groupId,
-                    'participants': entity.participantList,
-                }
-            )
-            self.queue.put(item)
-            msg = ['Group %s add participants:' % entity.groupId]
-            for participant in entity.participantList:
-                msg.append('- %s' % participant)
-            logger.info('\n'.join(msg))
+            logger.info('Group %s add participants success.' % entity.groupId)
+            self.group_info(entity.groupId)
         elif isinstance(entity, SuccessRemoveParticipantsIqProtocolEntity):
-            item = QueueItem(
-                item_type='group-del',
-                content={
-                    'id': entity.groupId,
-                    'participants': entity.participantList,
-                }
-            )
-            self.queue.put(item)
-            msg = ['Group %s remove participants:' % entity.groupId]
-            for participant in entity.participantList:
-                msg.append('- %s' % participant)
-            logger.info('\n'.join(msg))
+            logger.info('Group %s remove participants success.' % entity.groupId)
+            self.group_info(entity.groupId)
         elif isinstance(entity, SuccessLeaveGroupsIqProtocolEntity):
             item = QueueItem(
                 item_type='group-leave',
@@ -441,10 +433,15 @@ class WebsupLayer(YowInterfaceLayer):
                     'subject': entity.getSubject(),
                     'subject-owner': entity.getSubjectOwnerJid(),
                     'subject-time': entity.getSubjectTimestamp(),
-                    'participants': entity.getParticipants(),
+                    'participants': [
+                         p for p, t in entity.getParticipants().items()
+                    ],
                     'admin': (
-                        self.normalizeJid(self.getOwnJid()) ==
-                          self.normalizeJid(entity.getCreatorJid())
+                        self.normalizeJid(self.getOwnJid()) in [
+                            self.normalizeJid(p)
+                            for p, t in entity.getParticipants().items()
+                            if t == 'admin'
+                        ]
                     ),
                 }
             )

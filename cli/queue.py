@@ -11,4 +11,10 @@ class QueueItem:
         return '%s: %s' % (self.item_type, self.data)
 
     def asJson(self):
-        return json.dumps({'type': self.item_type, 'content': self.content})
+        try:
+            js = json.dumps({'type': self.item_type, 'content': self.content})
+        except TypeError:
+            js = json.dumps(
+                {'type': self.item_type, 'content': '%s' % self.content}
+            )
+        return js

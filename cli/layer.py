@@ -447,11 +447,7 @@ class WebsupLayer(YowInterfaceLayer):
             )
             self.queue.put(item)
         else:
-            logger.info(
-                'Notification received entity:\n%s' % (
-                    entity.toProtocolTreeNode(),
-                )
-            )
+            logger.info('Notification received entity:\n%s' % entity)
 
     @ProtocolEntityCallback("presence")
     def onPresence(self, entity):

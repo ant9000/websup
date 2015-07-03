@@ -13,7 +13,7 @@
             </div>
         </div>
         <div class="col-md-4">
-            <div ng-if="current_conversation.messages.length" ng-repeat="message in current_conversation.messages" id="messages-container">
+            <div ng-if="current_conversation.messages.length" ng-repeat="message in current_conversation.messages | orderBy:'-timestamp'" id="messages-container">
                  <div class="bubble" ng-class="{ own: message.own }">
 
                    <div class="pull-right">

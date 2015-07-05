@@ -42,7 +42,7 @@
             <div ng-if="session.username" class="panel-body">
                 Welcome, <b>{{ session.username }}</b>.
             </div>
-            <div class="panel-footer">
+            <div class="panel-body">
                <div class="btn-group btn-group-sm" role="group">
                  <a href="#/messages" class="btn" role="button" ng-class="$location.path()=='/messages'?'btn-primary':'btn-default'">messages</a>
                  <a href="#/groups"   class="btn" role="button" ng-class="$location.path()=='/groups'?'btn-primary':'btn-default'">groups</a>
@@ -51,6 +51,22 @@
                   <a href="/logout" class="btn btn-default" role="button"><span class="glyphicon glyphicon-log-out" title="Logout"></span></a>
                </div>
                <div class="clearfix"></div>
+            </div>
+            <div class="panel-footer">
+              <div>
+                <form id="msg-form" ng-submit="sendMessage()">
+                  <div class="col-lg-2">
+                    <input type="text" class="form-control" placeholder="to" ng-model="newmessage.to" ngValue="newmessage.display || newmessage.to|cutDomain" required="" />
+                  </div>
+                  <div class="col-lg-9">
+                    <input type="text" class="form-control" id="newmessage-content" placeholder="content" ng-model="newmessage.content" required="" />
+                  </div>
+                  <div class="col-lg-1">
+                    <button type="submit" class="btn btn-default pull-right"> Send </button>
+                  </div>
+                </form>
+              </div>
+              <div class="clearfix"></div>
             </div>
         </div>
 
@@ -62,6 +78,7 @@
 
    </div>
 
+<!--
     <nav class="navbar navbar-fixed-bottom">
         <div class="container">
             <div class="panel panel-primary">
@@ -83,6 +100,7 @@
             </div>
         </div>
     </nav>
+-->
 
 </body>
 </html>

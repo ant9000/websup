@@ -22,13 +22,14 @@ class Database:
             self.conn.close()   
             self.conn = None
 
-    def messages(self, date='now'):
+    def messages(self, page=0, max_rows=100):
         cursor = self.conn.cursor()
         rows = cursor.execute(
             "SELECT * FROM messages "
-            "WHERE date(timestamp) = date(?) "
-            "ORDER BY timestamp DESC",
-            [date]
+            "ORDER BY timestamp DESC "
+            "LIMIT ? "
+            "OFFSET ?",
+            [max_rows, page*max_rows]
         ).fetchall()
         return [ dict(row) for row in rows ]
 

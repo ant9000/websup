@@ -4,7 +4,6 @@ from cli.logconfig import logging
 import sys
 import gevent
 import bottle
-from bottle.ext import sqlite
 from bottle.ext.websocket import GeventWebSocketServer
 from bottle.ext.websocket import websocket
 from geventwebsocket import WebSocketError
@@ -14,6 +13,7 @@ from cli import stack
 from cli.queue import Queue, QueueItem
 from cli import myemoji
 from cli.mail import Mailer
+from cli.db import Database
 import os
 import json
 import time
@@ -92,10 +92,10 @@ session_opts = {
     'session.auto': True,
 }
 app = bottle.app()
-app.install(sqlite.Plugin(dbfile=here('db/websup.db')))
 app = SessionMiddleware(app, session_opts)
 web_clients = {}
 
+db = Database(dbfile=here('db/websup.db'))
 
 def check_login(username, password):
     try:
@@ -185,8 +185,9 @@ def echo(ws):
                         }
                         ws.send(json.dumps(res))
                         if data['msg'] == 'connected':
-                            # TODO: fetch last messages from DB and send them
-                            pass
+                            # fetch latest messages from db and send them
+                            for msg in db.messages():
+                                ws.send(msg['message'])
                         elif data['msg'] == 'history':
                             page = 0
                             try:
@@ -269,8 +270,8 @@ def queue_consumer():
                             conn.send(msg)
                 # work done, now we can consume message
                 queue.get()
-                # TODO: save item to db
-                pass
+                # save item to db
+                db.save(item)
             except gevent.queue.Empty:
                 pass
             except WebSocketError, e:

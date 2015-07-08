@@ -4,6 +4,14 @@ var websupControllers = angular.module('websupControllers', []);
 
 websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log', '$window', function($scope,$location,socket,$log,$window){
   $scope.$location = $location;
+  
+  function isInside(item,items){
+    var found = false;
+    for(var i=0;!found && i<items.length;i++){
+      found = angular.equals(item,items[i]);
+    }
+    return found;
+  }
 
   // SESSION INFO
   $scope.username = null;
@@ -144,7 +152,8 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
     }
     $scope.conversations[idx]['display'] = display;
     $scope.conversations[idx]['last_timestamp'] = message.timestamp;
-    $scope.conversations[idx]['messages'].push(message);
+    var messages = $scope.conversations[idx]['messages'];
+    if(!isInside(message,messages)){ messages.push(message); }
     $scope.setConversation(number,false);
   });
   $scope.setConversation = function(number,set_to){

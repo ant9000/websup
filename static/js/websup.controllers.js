@@ -129,6 +129,8 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
   $scope.conversations = [];
   $scope.conversationIds = {};
   $scope.current_conversation = null;
+  $scope.messages_count = 0;
+  $scope.messages_db_count = 0;
   $scope.$on('message',function(evt,data){
     $log.log('MessagesCtrl',data);
     var message = data.content;
@@ -153,7 +155,10 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
     $scope.conversations[idx]['display'] = display;
     $scope.conversations[idx]['last_timestamp'] = message.timestamp;
     var messages = $scope.conversations[idx]['messages'];
-    if(!isInside(message,messages)){ messages.push(message); }
+    if(!isInside(message,messages)){
+       messages.push(message);
+       $scope.messages_count++;
+    }
     $scope.setConversation(number,false);
   });
   $scope.setConversation = function(number,set_to){
@@ -167,14 +172,21 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
       }
     }
   }
+  $scope.$on('message-count',function(evt,data){
+    $log.log('MessagesCtrl',data);
+    $scope.messages_db_count = data.content;
+  });
 
   // Start communication
   socket.start();
 }]);
 
-websupControllers.controller('MessagesCtrl', ['$scope', '$window', '$log', function($scope, $window, $log){
+websupControllers.controller('MessagesCtrl', ['$scope', '$window', 'socket', '$log', function($scope, $window, socket, $log){
   $scope.messageRead = function(message_id){
      $window.alert('TODO');
+  };
+  $scope.readMore = function(offset){
+     socket.send({ type: 'messages-page', 'offset': offset });
   };
 }]);
 

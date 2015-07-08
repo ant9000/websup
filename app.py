@@ -188,6 +188,11 @@ def echo(ws):
                             # fetch latest messages from db and send them
                             for msg in db.messages():
                                 ws.send(msg['message'])
+                            res = {
+                                'type': 'message-count',
+                                'content': db.count(),
+                            }
+                            ws.send(json.dumps(res))
                         elif data['msg'] == 'history':
                             page = 0
                             try:
@@ -215,6 +220,10 @@ def echo(ws):
                         item.content['own'] = True
                         item.content['broadcast'] = False
                         queue.put(item)
+                    elif data['type'] == 'messages-page':
+                        offset = data['offset']
+                        for msg in db.messages(offset):
+                            ws.send(msg['message'])
                 except KeyError:
                     logger.error('message format is not valid')
         except WebSocketError, e:
@@ -271,7 +280,14 @@ def queue_consumer():
                 # work done, now we can consume message
                 queue.get()
                 # save item to db
-                db.save(item)
+                saved = db.save(item)
+                if saved:
+                    for conn, user in web_clients.items():
+                        res = {
+                            'type': 'message-count',
+                            'content': db.count(),
+                        }
+                        conn.send(json.dumps(res))
             except gevent.queue.Empty:
                 pass
             except WebSocketError, e:

@@ -57,6 +57,12 @@ websupControllers.controller('MainCtrl', ['$scope', '$location', 'socket', '$log
       $scope.groups.push({ group_id: group.id, participants: [] });
     }
     angular.extend($scope.groups[idx],group);
+
+    if(group.subject){
+      var cidx = $scope.conversationIds[group.id];
+      if(cidx !== undefined){ $scope.conversations[cidx]['display'] = group.subject; }
+    }
+
     if(group.id == ($scope.current_group || group.id)){ $scope.setGroup(group.id,false); }
   }
   $scope.$on('group-list',function(evt,data){

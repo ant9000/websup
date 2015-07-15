@@ -9,6 +9,7 @@ from yowsup.layers.protocol_receipts.protocolentities import \
     OutgoingReceiptProtocolEntity
 from yowsup.layers.protocol_acks.protocolentities import \
     OutgoingAckProtocolEntity
+from yowsup.layers import YowLayerEvent
 from yowsup.layers.network import YowNetworkLayer
 from yowsup.layers.protocol_groups.protocolentities import \
     ListGroupsIqProtocolEntity, \
@@ -42,12 +43,10 @@ logger = logging.getLogger(__name__)
 class WebsupLayer(YowInterfaceLayer):
     EVENT_START = "org.openwhatsapp.yowsup.event.cli.start"
     EVENT_DISPATCH = "org.openwhatsapp.yowsup.event.cli.dispatch"
-    CONNECTION_RETRY_MAX = 5
 
     def __init__(self):
         YowInterfaceLayer.__init__(self)
         self.queue = None
-        self.connection_retry_count = 0
 
     def normalizeJid(self, number):
         if "@" in number:
@@ -63,13 +62,15 @@ class WebsupLayer(YowInterfaceLayer):
             self.queue = layerEvent.getArg('queue')
             logger.info("Started, requesting connection.")
             self.connect()
-            return True
         elif name == self.__class__.EVENT_DISPATCH:
             item = layerEvent.getArg('item')
             if item.item_type == 'message':
                 number = item.content['to']
                 content = item.content['content']
                 self.message_send(number, content)
+            elif item.item_type == 'disconnect':
+                logger.info("Disconnect requested.")
+                self.disconnect()
             elif item.item_type == 'group':
                 data = item.content
                 if data['command'] == 'list':
@@ -117,19 +118,10 @@ class WebsupLayer(YowInterfaceLayer):
                             self.group_participants_del(group_id, to_del)
             return True
         elif name == YowNetworkLayer.EVENT_STATE_CONNECTED:
-            logger.info("Connected")
+            logger.info("Connected: %s", layerEvent.args)
         elif name == YowNetworkLayer.EVENT_STATE_DISCONNECTED:
-            logger.warning("Disconnected: %s", layerEvent.getArg('reason'))
-            # try reconnecting
-            if self.connection_retry_count < self.CONNECTION_RETRY_MAX:
-                self.connection_retry_count += 1
-                logger.warning(
-                    "Reconnection attempt #%d", self.connection_retry_count
-                )
-                self.connect()
-            else:
-                logger.error("FATAL: cannot reconnect.")
-                pass
+            logger.error("Disconnected: %s", layerEvent.getArg('reason'))
+            self.setProp("loop",False)
 
     @ProtocolEntityCallback("message")
     def onMessage(self, entity):
@@ -290,7 +282,6 @@ class WebsupLayer(YowInterfaceLayer):
 
     @ProtocolEntityCallback("success")
     def onSuccess(self, entity):
-        self.connection_retry_count = 0
         self.connected = True
         name = self.getProp("name")
         if name:
@@ -457,4 +448,3 @@ class WebsupLayer(YowInterfaceLayer):
     def onStreamError(self, entity):
         logger.error('Stream error %s' % entity)
         self.disconnect()
-        logger.error('Requested disconnect')

@@ -9,7 +9,7 @@ from bottle.ext.websocket import websocket
 from geventwebsocket import WebSocketError
 from beaker.middleware import SessionMiddleware
 from cli.config import Config, NoSectionError, NoOptionError
-from cli import stack
+from cli.stack import WebsupStack
 from cli.queue import Queue, QueueItem
 from cli import myemoji
 from cli.mail import Mailer
@@ -86,7 +86,7 @@ configuration is correct.
 
 logger = logging.getLogger()
 queue = Queue()
-stack = stack.WebsupStack((phone, password), name)
+stack = WebsupStack((phone, password), name)
 session_opts = {
     'session.cookie_expires': True,
     'session.auto': True,
@@ -244,8 +244,16 @@ def send_static(filename):
 
 
 def yowsup():
-    stack.start(queue)
-
+    global stack
+    while True:
+        try:
+            stack.start(queue)
+            # should linger forever...
+        except Exception as e:
+            print("Error: %s" % e)
+        print("Stack exited. Sleeping 2 seconds before retrying...")
+        gevent.sleep(2)
+        stack = WebsupStack((phone, password), name)
 
 def queue_consumer():
     while True:

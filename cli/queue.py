@@ -8,7 +8,7 @@ class QueueItem:
         self.content = content
 
     def __str__(self):
-        return '%s: %s' % (self.item_type, self.data)
+        return '%s: %s' % (self.item_type, self.content)
 
     def asJson(self):
         try:

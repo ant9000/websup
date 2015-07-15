@@ -21,23 +21,27 @@ class WebsupStack(object):
             .build()
         self.stack.setCredentials(credentials)
         self.stack.setProp('name', name)
+        self.stack.setProp('loop', True)
 
     def start(self, queue):
-        self.stack.broadcastEvent(
-            YowLayerEvent(WebsupLayer.EVENT_START, queue=queue)
-        )
         try:
-            while True:
+            self.stack.broadcastEvent(
+                YowLayerEvent(WebsupLayer.EVENT_START, queue=queue)
+            )
+            while self.stack.getProp('loop'):
                 try:
                     self.stack.loop(timeout=0.5, count=1)
                 except ValueError, e:
                     logger.error("%s", e)
                 gevent.sleep(0.5)
+            logger.warning('stopped.')
         except AuthError as e:
             print("Auth Error, reason %s" % e)
         except KeyboardInterrupt, e:
-            print "Exit."
+            print("Exit.")
             sys.exit(0)
+        except Exception as e:
+            print("Caught exception: %s" % e)
 
     def dispatch(self, item):
         self.stack.broadcastEvent(
